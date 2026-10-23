@@ -130,7 +130,10 @@ export default class TradoshiPlugin extends Plugin {
 		try {
 			const from = historyFrom(this.settings.history);
 			const clientVersion = this.manifest.version;
-			if (!manual && this.settings.lastSync) {
+			// The quick check is skipped when the overview note is gone: the trader may
+			// have deleted the folder, and "nothing changed" would never write it again.
+			const overview = overviewPath({ folder: normalizePath(this.settings.folder || "Tradoshi"), appUrl: APP_URL, appLinks: true, tradeNotes: true, dailyNotes: true });
+			if (!manual && this.settings.lastSync && this.app.vault.getFileByPath(overview)) {
 				const delta = await fetchJournal(token, { from, since: this.settings.lastSync, clientVersion });
 				if (delta.accounts.every((a) => !a.changed) && delta.notes.length === 0) return;
 			}

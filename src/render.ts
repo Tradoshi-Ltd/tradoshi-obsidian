@@ -49,8 +49,9 @@ export function money(value: number, currency: string): string {
 	return `${sign}${Math.abs(value).toFixed(2)} ${currency}`;
 }
 
+// A "#" is dropped rather than replaced: "#BTCUSD" reads better as "BTCUSD" than "-BTCUSD".
 function cleanFileName(s: string): string {
-	return s.replace(/[\\/:*?"<>|#^[\]]/g, "-").replace(/\s+/g, " ").trim();
+	return s.replace(/#/g, "").replace(/[\\/:*?"<>|^[\]]/g, "-").replace(/\s+/g, " ").trim();
 }
 
 /** Obsidian tags allow letters, digits, "-", "_" and "/", and cannot be numbers only. */
@@ -229,7 +230,8 @@ export function dayFrontmatter(date: string, items: TradeWithAccount[]): Frontma
 }
 
 export function dayBlock(ctx: RenderContext, date: string, items: TradeWithAccount[], note: ApiDayNote | undefined): string {
-	const lines: string[] = [`# ${date}`, ""];
+	// No heading: Obsidian already shows the file name, which is the date.
+	const lines: string[] = [];
 	const sorted = [...items].sort((a, b) => (tradeInstant(a.trade) ?? "").localeCompare(tradeInstant(b.trade) ?? ""));
 	if (sorted.length) {
 		const s = summarize(sorted);
@@ -262,7 +264,7 @@ export function overviewBlock(
 	generatedAt: string,
 	now: Date = new Date(),
 ): string {
-	const lines: string[] = ["# Tradoshi", ""];
+	const lines: string[] = [];
 	lines.push(`Last sync: ${localDateTime(generatedAt)?.replace("T", " ") ?? "-"}`, "");
 
 	lines.push("## Accounts", "", "| Account | Broker | Trades | Updated in Tradoshi |", "|---|---|---|---|");
