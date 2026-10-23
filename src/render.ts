@@ -107,8 +107,9 @@ function tradeLinkInTable(ctx: RenderContext, t: ApiTrade): string {
 	return ctx.tradeNotes ? `[[${withoutExtension(tradePath(ctx, t))}\\|${label}]]` : label;
 }
 
-export function appLink(ctx: RenderContext, campaign: string, hash = "journal"): string {
-	return `${ctx.appUrl}/?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}${hash ? `#${hash}` : ""}`;
+export function appLink(ctx: RenderContext, campaign: string, hash = "journal", extraQuery = ""): string {
+	const extra = extraQuery ? `&${extraQuery}` : "";
+	return `${ctx.appUrl}/?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}${extra}${hash ? `#${hash}` : ""}`;
 }
 
 // ── Trade notes ─────────────────────────────────────────────────────────────

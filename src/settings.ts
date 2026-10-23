@@ -59,7 +59,7 @@ export class TradoshiSettingTab extends PluginSettingTab {
 					{
 						name: "Get an access token",
 						desc: "Opens Tradoshi in your browser. From there, one click sends the token back to this vault.",
-						action: () => window.open(appLink(ctx, "settings", "obsidian")),
+						action: () => window.open(appLink(ctx, "settings", "params", "section=obsidian")),
 					},
 					{
 						name: "Create a free Tradoshi account",
