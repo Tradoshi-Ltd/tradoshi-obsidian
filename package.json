@@ -1,0 +1,28 @@
+{
+  "name": "tradoshi-obsidian",
+  "version": "1.0.0",
+  "description": "Sync your Tradoshi trading journal into Markdown notes.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "lint": "eslint src",
+    "test": "node --test test/render.test.mjs"
+  },
+  "keywords": [
+    "obsidian",
+    "trading",
+    "journal"
+  ],
+  "author": "Tradoshi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "esbuild": "^0.24.0",
+    "eslint-plugin-obsidianmd": "^0.4.2",
+    "obsidian": "^1.14.4",
+    "tslib": "^2.8.1",
+    "typescript": "^5.6.3"
+  }
+}
