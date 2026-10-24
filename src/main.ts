@@ -1,9 +1,10 @@
 import { Notice, Plugin, TFile, TFolder, addIcon, type ObsidianProtocolData, type TAbstractFile } from "obsidian";
 import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
+import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
-import { DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
+import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
 import { historyFrom, indexVault, renderContext, writeJournal } from "./sync";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
@@ -52,12 +53,18 @@ export default class TradoshiPlugin extends Plugin {
 		this.addSettingTab(new TradoshiSettingTab(this.app, this));
 
 		addIcon("tradoshi", TRADOSHI_ICON);
-		this.addRibbonIcon("tradoshi", "Sync Tradoshi journal", () => void this.sync(true));
+		this.registerView(DASHBOARD_VIEW, (leaf) => new DashboardView(leaf, this));
+		this.addRibbonIcon("tradoshi", "Open Tradoshi dashboard", () => void this.openDashboard());
 
 		this.addCommand({
 			id: "sync-now",
 			name: "Sync journal now",
 			callback: () => void this.sync(true),
+		});
+		this.addCommand({
+			id: "open-dashboard",
+			name: "Open the dashboard",
+			callback: () => void this.openDashboard(),
 		});
 		this.addCommand({
 			id: "open-overview",
@@ -81,6 +88,11 @@ export default class TradoshiPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			this.keyByPath = indexVault(this.app).byPath;
 			this.watchVault();
+			// First run: the dashboard opens by itself, with the sample journal until an account is connected.
+			if (!this.settings.dashboardOpened) {
+				this.settings.dashboardOpened = true;
+				void this.saveSettings().then(() => this.openDashboard());
+			}
 			if (this.settings.syncOnStartup && this.getToken()) void this.sync(false);
 		});
 		this.scheduleAutoSync();
@@ -167,6 +179,33 @@ export default class TradoshiPlugin extends Plugin {
 
 	// ── Connection ────────────────────────────────────────────────────────────
 
+	get appUrl(): string {
+		return APP_URL;
+	}
+
+	isConnected(): boolean {
+		return this.getToken() !== null;
+	}
+
+	/** Path of the note carrying an identity ("trade:…", "day:YYYY-MM-DD"), if it exists. */
+	pathForKey(key: string): string | null {
+		for (const [path, k] of this.keyByPath) if (k === key) return path;
+		return null;
+	}
+
+	async openDashboard(): Promise<void> {
+		const existing = this.app.workspace.getLeavesOfType(DASHBOARD_VIEW)[0];
+		const leaf = existing ?? this.app.workspace.getLeaf("tab");
+		if (!existing) await leaf.setViewState({ type: DASHBOARD_VIEW, active: true });
+		await this.app.workspace.revealLeaf(leaf);
+	}
+
+	private refreshDashboards(): void {
+		for (const leaf of this.app.workspace.getLeavesOfType(DASHBOARD_VIEW)) {
+			if (leaf.view instanceof DashboardView) leaf.view.refresh();
+		}
+	}
+
 	private getToken(): string | null {
 		const token = this.app.secretStorage.getSecret(this.settings.tokenSecret || TOKEN_SECRET_ID);
 		return token && token.trim() ? token.trim() : null;
@@ -200,7 +239,7 @@ export default class TradoshiPlugin extends Plugin {
 				await this.saveSettings();
 				new Notice("Tradoshi: connected. Your journal is on its way.");
 				await this.sync(true);
-				await this.openOverview();
+				await this.openDashboard();
 			})();
 		}).open();
 	}
@@ -251,11 +290,14 @@ export default class TradoshiPlugin extends Plugin {
 			}
 			const data = await fetchJournal(token, { from, since: null, clientVersion });
 			const stats = await writeJournal(this.app, data, this.settings);
+			this.settings.tagCategories = Object.fromEntries(data.tags.map((tag) => [tag.name, tag.category ?? ""]));
 			this.settings.lastSync = data.generatedAt;
 			await this.saveSettings();
 			if (manual || stats.created + stats.updated > 0) {
 				new Notice(`Tradoshi: ${stats.created} notes created, ${stats.updated} updated.`);
 			}
+			// Notes just written are read by the dashboard once Obsidian has indexed them.
+			window.setTimeout(() => this.refreshDashboards(), 1500);
 		} catch (e) {
 			const message = e instanceof TradoshiError ? e.message : "the sync stopped on an unexpected error.";
 			const tokenProblem = e instanceof TradoshiError && e.status === 401;

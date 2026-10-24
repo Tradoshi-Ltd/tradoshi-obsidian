@@ -6,6 +6,7 @@ The plugin reads your [Tradoshi](https://tradoshi.com) journal and writes it int
 
 ## What you get
 
+- **A dashboard** (the owl in the ribbon): net P&L, win rate, profit factor, expectancy, average R, max drawdown and best day; equity curve; monthly P&L calendar that opens each day note; discipline (results when you follow your plan and when you don't, cost of each mistake); setups; emotions; days of the week; latest trades. It is computed on your computer from the notes of your vault, so it works offline. Before you connect an account, it shows a sample journal.
 - **A note per trade**, with its properties: symbol, side, result, net P&L, R multiple, entry and exit, stop loss and take profit, fees, account, emotion, execution rating, whether you followed your plan, and your Tradoshi tags (`tradoshi_tags`).
 - **A note per trading day**, with the net P&L, the win rate and a table of the day's trades linked to their notes, plus the day notes you wrote in Tradoshi.
 - **An overview note** with your accounts, the last 30 days and links to your recent days.

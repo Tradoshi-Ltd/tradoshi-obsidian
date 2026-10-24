@@ -22,6 +22,10 @@ export interface TradoshiSettings {
 	dayStartHour: string;
 	/** Identities of the notes the trader deleted: they are not written again. */
 	deletedKeys: string[];
+	/** Category of each Tradoshi tag ("Setups", "Mistakes"…), read at each sync. */
+	tagCategories: Record<string, string>;
+	/** The dashboard opens by itself once, the first time the plugin runs. */
+	dashboardOpened: boolean;
 	/** Server time of the last complete sync, used to ask only for what changed. */
 	lastSync: string | null;
 }
@@ -40,6 +44,8 @@ export const DEFAULT_SETTINGS: TradoshiSettings = {
 	timeZone: "",
 	dayStartHour: "0",
 	deletedKeys: [],
+	tagCategories: {},
+	dashboardOpened: false,
 	lastSync: null,
 };
 
