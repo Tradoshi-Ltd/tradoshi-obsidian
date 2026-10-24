@@ -1,0 +1,137 @@
+/* Setups view, setup sheets and the setup ranking widget. Theme colours, the gain and
+   loss colours, and one colour per setup (--tradoshi-setup): the trader's, or one of a
+   palette drawn from the theme, kept apart from the gain and loss colours. */
+
+.tradoshi-su-c0 { --tradoshi-setup: var(--color-blue); }
+.tradoshi-su-c1 { --tradoshi-setup: var(--color-orange); }
+.tradoshi-su-c2 { --tradoshi-setup: var(--color-purple); }
+.tradoshi-su-c3 { --tradoshi-setup: var(--color-cyan); }
+.tradoshi-su-c4 { --tradoshi-setup: var(--color-pink); }
+.tradoshi-su-c5 { --tradoshi-setup: var(--color-yellow); }
+
+.tradoshi-su-dot { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--tradoshi-setup, var(--text-faint)); }
+.tradoshi-su-name { display: flex; align-items: center; gap: var(--size-2-3); min-width: 0; flex-wrap: wrap; }
+.tradoshi-dash h2.tradoshi-su-h { margin: 0; }
+.tradoshi-dash .is-clickable { cursor: pointer; }
+
+/* Status of a setup */
+.tradoshi-su-status.is-active { color: var(--tradoshi-gain, var(--text-accent)); border-color: currentColor; }
+.tradoshi-su-status.is-testing { color: var(--text-accent); border-color: currentColor; }
+.tradoshi-su-status.is-paused { color: var(--text-faint); }
+.tradoshi-su-status.is-nosheet { color: var(--text-faint); border-style: dashed; }
+
+/* Controls */
+.tradoshi-su-controls { display: flex; flex-direction: column; gap: var(--size-2-3); margin-bottom: var(--size-4-3); }
+.tradoshi-su-controls-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3) var(--size-4-3); }
+
+/* Notices and banners */
+.tradoshi-su-banner {
+	display: flex; align-items: center; justify-content: space-between; gap: var(--size-4-2); flex-wrap: wrap;
+	border: 1px dashed var(--background-modifier-border-hover); border-radius: var(--radius-m);
+	padding: var(--size-2-3) var(--size-4-3); margin-bottom: var(--size-4-3); font-size: var(--font-ui-small); color: var(--text-muted);
+}
+.tradoshi-su-empty { display: grid; gap: var(--size-2-3); justify-items: start; max-width: 640px; }
+.tradoshi-su-empty p { margin: 0; color: var(--text-muted); font-size: var(--font-ui-small); }
+.tradoshi-su-overview, .tradoshi-su-pairs, .tradoshi-su-compare, .tradoshi-su-compare-curves { margin-bottom: var(--size-4-3); }
+
+/* Cards of the list */
+.tradoshi-su-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--size-4-3); margin-bottom: var(--size-4-3); }
+.tradoshi-su-grid.is-paused { opacity: 0.75; }
+.tradoshi-su-card { display: grid; gap: var(--size-2-3); align-content: start; border-left: 3px solid var(--tradoshi-setup, var(--background-modifier-border)); }
+.tradoshi-su-card:hover, .tradoshi-su-card:focus-visible { border-color: var(--interactive-accent); border-left-color: var(--tradoshi-setup, var(--interactive-accent)); }
+.tradoshi-su-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--size-2-3); }
+.tradoshi-su-desc { font-size: var(--font-ui-smaller); color: var(--text-muted); line-height: 1.35; }
+.tradoshi-su-value { font-size: 1.35em; }
+.tradoshi-su-spark-empty { height: 48px; }
+.tradoshi-su-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--size-2-2) var(--size-2-3); font-size: var(--font-ui-small); }
+.tradoshi-su-fact-label { font-size: var(--font-ui-smaller); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tradoshi-su-issues { display: flex; flex-wrap: wrap; gap: var(--size-2-1); }
+.tradoshi-su-issue { font-size: var(--font-ui-smaller); color: var(--text-muted); background: var(--background-modifier-hover); border-radius: var(--radius-s); padding: 0 var(--size-2-2); }
+.tradoshi-dash button.tradoshi-su-paused-toggle { margin: 0 0 var(--size-4-2); padding: 0; }
+
+/* Curves of several setups */
+.tradoshi-chart .tradoshi-su-line { fill: none; stroke: var(--tradoshi-setup); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.tradoshi-chart .tradoshi-su-point { fill: var(--tradoshi-setup); }
+.tradoshi-chart .tradoshi-su-hover { display: none; fill: var(--tradoshi-setup); stroke: var(--background-secondary); stroke-width: 2; }
+.tradoshi-chart.is-hover .tradoshi-su-hover { display: inline; }
+.tradoshi-chart.is-hover .tradoshi-su-hover.is-off { display: none; }
+.tradoshi-su-swatch { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--tradoshi-setup); border-radius: 2px; }
+.tradoshi-dash button.tradoshi-su-legend { background: none; box-shadow: none; padding: 0; height: auto; color: var(--text-muted); font-size: var(--font-ui-smaller); }
+.tradoshi-dash button.tradoshi-su-legend:hover { color: var(--text-normal); }
+
+/* Detail of a setup */
+.tradoshi-su-title { flex: 1; min-width: 200px; display: grid; gap: var(--size-2-1); }
+.tradoshi-su-context { display: flex; flex-wrap: wrap; gap: var(--size-2-2); font-size: var(--font-ui-smaller); }
+.tradoshi-su-ctx { background: var(--background-modifier-hover); border-radius: var(--radius-s); padding: 1px var(--size-2-3); }
+.tradoshi-su-health { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-2); font-size: var(--font-ui-small); margin-bottom: var(--size-4-3); }
+.tradoshi-su-scroll { overflow-x: auto; }
+.tradoshi-su-gap-table td, .tradoshi-su-gap-table th { padding: var(--size-2-1) var(--size-2-2); white-space: nowrap; }
+.tradoshi-su-verdicts { margin-top: var(--size-4-2); }
+.tradoshi-dash .tradoshi-su-hint { margin: var(--size-4-2) 0 0; }
+.tradoshi-su-rule-list { display: grid; gap: var(--size-2-2); }
+.tradoshi-su-rule { display: flex; align-items: flex-start; gap: var(--size-2-3); font-size: var(--font-ui-small); cursor: pointer; }
+.tradoshi-su-rule input { margin-top: 3px; flex: none; }
+.tradoshi-su-buttons { display: flex; flex-wrap: wrap; gap: var(--size-2-3); margin-top: var(--size-4-3); }
+.tradoshi-su-playbook { font-size: var(--font-ui-small); }
+.tradoshi-su-playbook > div > :first-child { margin-top: 0; }
+.tradoshi-su-playbook h2, .tradoshi-su-playbook h3, .tradoshi-su-playbook h4 { font-size: var(--font-ui-medium); margin: var(--size-4-3) 0 var(--size-2-2); }
+.tradoshi-su-playbook img { max-width: 100%; border-radius: var(--radius-s); }
+.tradoshi-su-linked { display: flex; flex-wrap: wrap; gap: var(--size-2-2); }
+.tradoshi-dash button.tradoshi-su-linked-note { font-size: var(--font-ui-smaller); height: auto; padding: var(--size-2-1) var(--size-2-3); }
+
+/* Comparison */
+.tradoshi-su-compare-table th, .tradoshi-su-compare-table td { white-space: nowrap; }
+.tradoshi-su-compare-table th .tradoshi-su-name { justify-content: flex-end; text-transform: none; font-size: var(--font-ui-small); color: var(--text-normal); }
+.tradoshi-su-compare-table td.is-best, .tradoshi-su-cross td.is-best { font-weight: var(--font-bold); background: var(--background-modifier-hover); }
+.tradoshi-su-cross td, .tradoshi-su-cross th { padding: var(--size-2-1) var(--size-2-2); white-space: nowrap; }
+
+/* Ranking widget */
+.tradoshi-su-rank { display: grid; gap: var(--size-2-1); }
+.tradoshi-su-rank-row {
+	display: grid; grid-template-columns: 18px minmax(80px, 1.2fr) minmax(40px, 1fr) auto; align-items: center; gap: var(--size-2-3);
+	padding: var(--size-2-2) var(--size-2-2); border-radius: var(--radius-s); font-size: var(--font-ui-small); cursor: pointer;
+}
+.tradoshi-su-rank-row:hover, .tradoshi-su-rank-row:focus-visible { background: var(--background-modifier-hover); }
+.tradoshi-su-rank-row.is-few { opacity: 0.7; }
+.tradoshi-su-rank-n { color: var(--text-faint); font-size: var(--font-ui-smaller); text-align: right; }
+.tradoshi-su-rank-name { min-width: 0; }
+.tradoshi-su-rank-value { text-align: right; white-space: nowrap; }
+.tradoshi-dash button.tradoshi-su-rank-more { margin-top: var(--size-2-3); padding: 0; }
+
+/* The trade card: a setup that has its sheet opens it */
+.tradoshi-tag.is-link { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* Figures at the top of a setup sheet */
+.tradoshi-su-block {
+	--tradoshi-gain: #14a3a0;
+	--tradoshi-loss: #e0543f;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-l);
+	background: var(--background-secondary);
+	padding: var(--size-4-3) var(--size-4-4);
+	margin: var(--size-4-2) 0 var(--size-4-4);
+	font-size: var(--font-ui-small);
+	font-variant-numeric: tabular-nums;
+}
+.theme-light .tradoshi-su-block { --tradoshi-gain: #0e7f7c; --tradoshi-loss: #c2412d; }
+.tradoshi-su-block .pos { color: var(--tradoshi-gain); }
+.tradoshi-su-block .neg { color: var(--tradoshi-loss); }
+.tradoshi-su-block .tradoshi-muted, .tradoshi-su-block .tradoshi-empty { color: var(--text-muted); }
+.tradoshi-su-block-head { display: flex; align-items: center; gap: var(--size-2-3); flex-wrap: wrap; margin-bottom: var(--size-4-2); }
+.tradoshi-su-block-actions { margin-left: auto; display: flex; gap: var(--size-2-3); }
+.tradoshi-su-block-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--size-2-3); margin-bottom: var(--size-2-3); }
+.tradoshi-su-block-figures .tradoshi-kpi { background: var(--background-primary); padding: var(--size-2-3) var(--size-4-2); }
+.tradoshi-su-block-figures .tradoshi-kpi-value { font-size: 1.15em; }
+.tradoshi-su-block-line { margin-top: var(--size-2-2); font-weight: var(--font-semibold); }
+
+@container (max-width: 640px) {
+	.tradoshi-su-block-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.tradoshi-su-block { container-type: inline-size; }
+
+/* Narrow panes */
+@container tradoshi (max-width: 480px) {
+	.tradoshi-su-grid { grid-template-columns: minmax(0, 1fr); }
+	.tradoshi-su-rank-row { grid-template-columns: 18px minmax(0, 1fr) auto; }
+	.tradoshi-su-rank-row .tradoshi-bar-track { display: none; }
+}

@@ -1,6 +1,7 @@
 import { aumWidget, targetsWidget } from "../accounts/widgets";
 import { ANALYTICS_WIDGETS } from "./analytics";
 import { PROPFIRM_WIDGETS } from "../propfirm/widgets";
+import { setupRankingWidget } from "../setups/widget";
 import { CORE_WIDGETS } from "./core";
 import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, unreviewedWidget } from "./tools";
 import type { Widget } from "./types";
@@ -11,6 +12,7 @@ import type { Widget } from "./types";
 export const WIDGETS: Widget[] = [
 	quickLinksWidget,
 	...CORE_WIDGETS,
+	setupRankingWidget,
 	unreviewedWidget,
 	...PROPFIRM_WIDGETS,
 	...ANALYTICS_WIDGETS,

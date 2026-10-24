@@ -1,4 +1,4 @@
-import { MarkdownRenderChild, Modal, TFile, type App, type FrontMatterCache } from "obsidian";
+import { Keymap, MarkdownRenderChild, Modal, TFile, type App, type FrontMatterCache } from "obsidian";
 import { emotionLabel } from "../i18n";
 import { dateLabel, duration, money, num, sign } from "../format";
 import { tradesFromVault } from "../journal-data";
@@ -8,6 +8,9 @@ import { renderContext } from "../sync";
 import { ladder, outcomeOf, plannedRewardRisk, priceDigits, riskFromR, type TradePrices } from "./geometry";
 import { openManualTrade } from "../manual";
 import { mt } from "../manual/text";
+import { norm } from "../setups/logic";
+import { sheetPaths } from "../setups/sheets";
+import { st } from "../setups/text";
 import { tc } from "./text";
 
 // The card at the top of a trade note: what happened, at a glance, and the trader's own
@@ -231,8 +234,19 @@ export class TradeCard extends MarkdownRenderChild {
 		if (tags.length) {
 			const chips = sec.createDiv({ cls: "tradoshi-tc-tags" });
 			const cats = this.plugin.tagCategories();
+			// The tag of a setup that has its sheet opens the sheet.
+			const sheets = sheetPaths(this.app);
 			for (const tag of tags) {
 				const cat = (cats[tag] ?? "").toLowerCase();
+				const sheet = sheets.get(norm(tag));
+				if (sheet) {
+					const link = chips.createEl("a", { cls: "tradoshi-tag is-setup is-link", text: tag, href: "#", attr: { "aria-label": st("openSheetNamed", { name: tag }) } });
+					link.addEventListener("click", (e) => {
+						e.preventDefault();
+						void this.app.workspace.openLinkText(sheet, this.sourcePath, Keymap.isModEvent(e));
+					});
+					continue;
+				}
 				chips.createSpan({ cls: `tradoshi-tag${cat === "setups" ? " is-setup" : cat === "mistakes" ? " is-mistake" : ""}`, text: tag });
 			}
 		}
