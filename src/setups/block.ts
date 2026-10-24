@@ -1,6 +1,6 @@
 import { debounce, MarkdownRenderChild } from "obsidian";
 import { sparkline } from "../accounts/view";
-import { amount, money, num, sign } from "../format";
+import { amount, money, num, pctSign, sign } from "../format";
 import { t } from "../i18n";
 import { loadDashData } from "../journal-data";
 import type TradoshiPlugin from "../main";
@@ -15,7 +15,7 @@ import { openSetups } from "./view";
 // history, read from the trade notes, so the sheet shows how the setup does while the
 // trader writes its playbook. Redrawn when the trades or the sheet change.
 
-const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)} %`);
+const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)}${pctSign()}`);
 
 export class SetupBlock extends MarkdownRenderChild {
 	constructor(

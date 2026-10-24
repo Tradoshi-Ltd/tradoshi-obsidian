@@ -1,6 +1,6 @@
 import { Modal, Setting, type App } from "obsidian";
 import { makeT } from "../i18n";
-import { amount, money, num } from "../format";
+import { amount, money, num, pctSign } from "../format";
 import { evaluateGoal, type GoalItem, type GoalMetric, type GoalPeriod } from "../goal-list";
 import type TradoshiPlugin from "../main";
 import { parseTyped } from "../manual/calc";
@@ -141,7 +141,7 @@ export function goalItems(plugin: TradoshiPlugin): GoalItem[] {
 }
 
 const show = (metric: GoalMetric, v: number, currency: string): string =>
-	metric === "pnl" ? amount(v, currency) : metric === "trades" ? String(Math.round(v)) : metric === "avgR" ? `${num(v)} R` : `${num(v, 0)} %`;
+	metric === "pnl" ? amount(v, currency) : metric === "trades" ? String(Math.round(v)) : metric === "avgR" ? `${num(v)} R` : `${num(v, 0)}${pctSign()}`;
 
 export function goalSentence(g: GoalItem, currency: string): string {
 	return gt("sentence", { direction: gt(g.direction), target: show(g.metric, g.target, currency), metric: gt(g.metric).replace(/ \(%\)$/, ""), period: gt(g.period).toLowerCase() });

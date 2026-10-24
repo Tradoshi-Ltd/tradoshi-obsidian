@@ -1,5 +1,5 @@
 import { MarkdownRenderChild, setIcon, TFile, type App } from "obsidian";
-import { money, num, percent, sign } from "../format";
+import { colon, money, num, pctSign, percent, sign } from "../format";
 import { t, tradesLabel } from "../i18n";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
@@ -164,7 +164,7 @@ export class PeriodCard extends MarkdownRenderChild {
 		};
 		tile(t("net"), cur.net, prev.net, (v) => money(v, c), "up", sign(cur.net));
 		tile(t("trades"), cur.trades, prev.trades, (v) => String(v), "none");
-		tile(t("winRate"), cur.winRate, prev.winRate, (v) => `${num(v, 0)} %`, "up");
+		tile(t("winRate"), cur.winRate, prev.winRate, (v) => `${num(v, 0)}${pctSign()}`, "up");
 		tile(t("profitFactor"), cur.profitFactor, prev.profitFactor, (v) => num(v), "up");
 		tile(t("expectancy"), cur.expectancy, prev.expectancy, (v) => money(v, c), "up", sign(cur.expectancy ?? 0));
 		tile(t("avgR"), cur.avgR, prev.avgR, (v) => `${v > 0 ? "+" : ""}${num(v)} R`, "up", sign(cur.avgR ?? 0));
@@ -200,8 +200,8 @@ export class PeriodCard extends MarkdownRenderChild {
 				ratio: 0.3,
 				firstLast: [periodShort(periodOf("day", days[0])), periodShort(periodOf("day", days[days.length - 1]))],
 				tip: (i) => {
-					const lines = [`${periodShort(periodOf("day", days[i]))} : ${now[i] === null ? "–" : money(now[i] ?? 0, c, 2)}`];
-					if (prevDays[i]) lines.push(`${periodShort(periodOf("day", prevDays[i]))} : ${before[i] === null || before[i] === undefined ? "–" : money(before[i] ?? 0, c, 2)}`);
+					const lines = [`${periodShort(periodOf("day", days[i]))}${colon()}${now[i] === null ? "–" : money(now[i] ?? 0, c, 2)}`];
+					if (prevDays[i]) lines.push(`${periodShort(periodOf("day", prevDays[i]))}${colon()}${before[i] === null || before[i] === undefined ? "–" : money(before[i] ?? 0, c, 2)}`);
 					return lines;
 				},
 			},
@@ -234,7 +234,7 @@ export class PeriodCard extends MarkdownRenderChild {
 				if (canOpen) void openPeriod(this.plugin, r.period);
 			});
 			tr.createEl("td", { cls: "tradoshi-num", text: r.trades ? String(r.trades) : "–" });
-			tr.createEl("td", { cls: "tradoshi-num", text: r.winRate === null ? "–" : `${num(r.winRate, 0)} %` });
+			tr.createEl("td", { cls: "tradoshi-num", text: r.winRate === null ? "–" : `${num(r.winRate, 0)}${pctSign()}` });
 			const pnl = tr.createEl("td", { cls: "tradoshi-num" });
 			if (r.trades) {
 				const bar = pnl.createDiv({ cls: "tradoshi-rv-cellbar" });
@@ -323,7 +323,7 @@ export class PeriodCard extends MarkdownRenderChild {
 			for (const g of gs.slice(0, 5)) {
 				const row = sec.createDiv({ cls: "tradoshi-rv-group" });
 				row.createSpan({ text: g.label });
-				row.createSpan({ cls: "tradoshi-muted", text: `${tradesLabel(g.trades)}${g.winRate === null ? "" : ` · ${num(g.winRate, 0)} %`}` });
+				row.createSpan({ cls: "tradoshi-muted", text: `${tradesLabel(g.trades)}${g.winRate === null ? "" : ` · ${num(g.winRate, 0)}${pctSign()}`}` });
 				row.createSpan({ cls: `tradoshi-num tradoshi-strong ${sign(g.net)}`, text: money(g.net, c) });
 			}
 		};

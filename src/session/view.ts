@@ -1,5 +1,5 @@
 import { ItemView, Modal, setIcon, TFile, type App, type WorkspaceLeaf } from "obsidian";
-import { money, sign } from "../format";
+import { colon, money, sign } from "../format";
 import { tradesLabel } from "../i18n";
 import type TradoshiPlugin from "../main";
 import { allows, lockPanel, offerEvents } from "../offer";
@@ -241,7 +241,7 @@ export class SessionView extends ItemView {
 		const top = strip.createDiv({ cls: "tradoshi-sv-strip-top" });
 		top.createSpan({ cls: "tradoshi-strong", text: s.window ?? st("unplanned") });
 		if (s.unplanned) top.createSpan({ cls: "tradoshi-badge is-unplanned", text: st("unplanned") });
-		if (s.unplanned && s.reason) strip.createDiv({ cls: "tradoshi-small tradoshi-muted", text: `${st("reason")} : ${s.reason}` });
+		if (s.unplanned && s.reason) strip.createDiv({ cls: "tradoshi-small tradoshi-muted", text: `${st("reason")}${colon()}${s.reason}` });
 		const times = strip.createDiv({ cls: "tradoshi-sv-times" });
 		const clockEl = times.createSpan({ cls: "tradoshi-sv-clock" });
 		const update = (): void => {

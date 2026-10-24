@@ -1,3 +1,4 @@
+import { colon } from "../format";
 import type { WidgetContext } from "./types";
 
 // Charts of the analytics widgets, drawn in SVG with Obsidian's colours. They are
@@ -225,7 +226,7 @@ export function infoTiles(parent: HTMLElement, ctx: WidgetContext, items: InfoTi
 		c.createDiv({ cls: `tradoshi-kpi-value ${it.tone ?? ""}`, text: it.value });
 		c.createDiv({ cls: "tradoshi-kpi-sub", text: it.sub ?? " " });
 		if (it.info?.length) {
-			const lines = [`${it.label} : ${it.value}`, ...it.info];
+			const lines = [`${it.label}${colon()}${it.value}`, ...it.info];
 			c.addEventListener("mousemove", (e) => ctx.tip(e, lines));
 			c.addEventListener("mouseleave", () => ctx.hideTip());
 		}

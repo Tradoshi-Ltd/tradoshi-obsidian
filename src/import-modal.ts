@@ -1,4 +1,5 @@
 import { Modal, Notice, Setting, type App } from "obsidian";
+import { num } from "./format";
 import { language, locale, t } from "./i18n";
 import { CSV_FIELDS, parseCsv, parseRows, parseMetaTrader, tradesFromCsv, type CsvField, type ParsedFile } from "./import-parsers";
 import { readXlsx } from "./xlsx";
@@ -59,11 +60,17 @@ export class ImportModal extends Modal {
 			if (left <= 0) return;
 		}
 
-		const input = contentEl.createEl("input", { attr: { type: "file", accept: ".htm,.html,.csv,.txt,.xlsx" } });
+		// The native file field speaks the language of the system, not Obsidian's: a button of ours opens it.
+		const input = contentEl.createEl("input", { cls: "tradoshi-import-input", attr: { type: "file", accept: ".htm,.html,.csv,.txt,.xlsx" } });
+		const pick = contentEl.createDiv({ cls: "tradoshi-import-pick" });
+		pick.createEl("button", { text: t("importPick") }).addEventListener("click", () => input.click());
+		const chosen = pick.createSpan({ cls: "tradoshi-muted", text: t("importNoFile") });
 		contentEl.createEl("p", { cls: "setting-item-description", text: t("importChoose") });
 		input.addEventListener("change", () => {
 			const file = input.files?.[0];
-			if (file) void this.read(file);
+			if (!file) return;
+			chosen.setText(file.name);
+			void this.read(file);
 		});
 		this.resultEl = contentEl.createDiv();
 	}
@@ -155,7 +162,7 @@ export class ImportModal extends Modal {
 				tr.createEl("td", { text: x.closeTime ? day(x.closeTime) : "" });
 				tr.createEl("td", { text: x.symbol });
 				tr.createEl("td", { text: t(x.side) });
-				tr.createEl("td", { cls: x.pnl >= 0 ? "pos" : "neg", text: x.pnl.toFixed(2) });
+				tr.createEl("td", { cls: x.pnl >= 0 ? "pos" : "neg", text: `${x.pnl > 0 ? "+" : ""}${num(x.pnl, 2)}` });
 			}
 		}
 

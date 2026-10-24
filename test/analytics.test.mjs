@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildSync } from "esbuild";
+import { build } from "esbuild";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,9 +9,18 @@ import { pathToFileURL } from "node:url";
 // The figures of the analytics widgets, on trades written by hand. Every expected value
 // is worked out in the comment next to it.
 const dir = mkdtempSync(join(tmpdir(), "tradoshi-analytics-"));
+// Formats follow the language of Obsidian: "obsidian" is replaced by a stub (English).
+const stubObsidian = {
+	name: "stub-obsidian",
+	setup(b) {
+		b.onResolve({ filter: /^obsidian$/ }, () => ({ path: "obsidian", namespace: "stub" }));
+		b.onLoad({ filter: /.*/, namespace: "stub" }, () => ({ contents: "export const getLanguage = () => 'en';", loader: "js" }));
+	},
+};
 async function load(entry) {
 	const out = join(dir, entry.replace(/\W/g, "_") + ".mjs");
-	writeFileSync(out, buildSync({ entryPoints: [entry], bundle: true, format: "esm", write: false }).outputFiles[0].text);
+	const result = await build({ entryPoints: [entry], bundle: true, format: "esm", write: false, plugins: [stubObsidian], logLevel: "silent" });
+	writeFileSync(out, result.outputFiles[0].text);
 	return import(pathToFileURL(out).href);
 }
 const a = await load("src/stats-advanced.ts");

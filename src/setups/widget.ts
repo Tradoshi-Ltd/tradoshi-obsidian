@@ -1,4 +1,4 @@
-import { money, num, sign } from "../format";
+import { colon, money, num, pctSign, sign } from "../format";
 import { t, tradesLabel } from "../i18n";
 import { chips } from "../widgets/analytics-charts";
 import { cardTitle, emptyCard, type Widget } from "../widgets/types";
@@ -63,7 +63,7 @@ export const setupRankingWidget: Widget = {
 			if (r.meta?.status === "paused") line.createSpan({ cls: "tradoshi-badge tradoshi-su-status is-paused", text: "‖" });
 			name.createDiv({
 				cls: "tradoshi-bar-sub",
-				text: [tradesLabel(s.trades), s.winRate === null ? null : `${Math.round(s.winRate)} %`, few ? st("few") : null].filter(Boolean).join(" · "),
+				text: [tradesLabel(s.trades), s.winRate === null ? null : `${Math.round(s.winRate)}${pctSign()}`, few ? st("few") : null].filter(Boolean).join(" · "),
 			});
 			const track = row.createDiv({ cls: "tradoshi-bar-track" });
 			track.createDiv({ cls: `tradoshi-bar ${value >= 0 ? "is-gain" : "is-loss"}` }).setCssProps({ "--w": `${Math.max(2, (Math.abs(value) / max) * 50)}%` });
@@ -72,11 +72,11 @@ export const setupRankingWidget: Widget = {
 			figure.createDiv({ cls: "tradoshi-bar-sub", text: by === "net" ? `${money(s.expectancy ?? 0, ctx.currency)}/${t("perTrade").split(" ").pop() ?? ""}` : money(s.net, ctx.currency) });
 			const tip = [
 				r.name,
-				`${t("net")} : ${money(s.net, ctx.currency, 2)}`,
-				`${t("expectancy")} : ${money(s.expectancy ?? 0, ctx.currency, 2)} ${t("perTrade")}`,
-				`${t("winRate")} : ${s.winRate === null ? "–" : `${num(s.winRate, 1)} %`}`,
-				`${t("profitFactor")} : ${s.profitFactor === null ? "–" : num(s.profitFactor)}`,
-				`${t("avgR")} : ${s.avgR === null ? "–" : num(s.avgR)}`,
+				`${t("net")}${colon()}${money(s.net, ctx.currency, 2)}`,
+				`${t("expectancy")}${colon()}${money(s.expectancy ?? 0, ctx.currency, 2)} ${t("perTrade")}`,
+				`${t("winRate")}${colon()}${s.winRate === null ? "–" : `${num(s.winRate, 1)}${pctSign()}`}`,
+				`${t("profitFactor")}${colon()}${s.profitFactor === null ? "–" : num(s.profitFactor)}`,
+				`${t("avgR")}${colon()}${s.avgR === null ? "–" : num(s.avgR)}`,
 				tradesLabel(s.trades),
 			];
 			if (few) tip.push(st("fewTip", { n: EDGE_MIN_TRADES }));

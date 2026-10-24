@@ -1,5 +1,5 @@
 import { t, tradesLabel } from "../i18n";
-import { compact, money, num, sign } from "../format";
+import { colon, compact, money, num, pctSign, sign } from "../format";
 import type { DashTrade, Group } from "../stats";
 import { byHour, bySide, hourSample, otherTags, rankHour, sideCurves, topGroups, type HourBucket, type Summary } from "../stats-advanced";
 import { columns, groupBars } from "./charts";
@@ -13,7 +13,7 @@ import { cardTitle, emptyCard, type Widget, type WidgetContext } from "./types";
 
 const perTrade = (): string => t("perTrade").split(" ").pop() ?? "";
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
-const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)} %`);
+const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)}${pctSign()}`);
 
 export const longShortWidget: Widget = {
 	id: "long-short",
@@ -61,8 +61,8 @@ export const longShortWidget: Widget = {
 					const p = curves[i];
 					return [
 						dateTime(p.trade.at),
-						`${cap(t("long"))} : ${money(p.long, c, 2)} (${tradesLabel(p.longN)})`,
-						`${cap(t("short"))} : ${money(p.short, c, 2)} (${tradesLabel(p.shortN)})`,
+						`${cap(t("long"))}${colon()}${money(p.long, c, 2)} (${tradesLabel(p.longN)})`,
+						`${cap(t("short"))}${colon()}${money(p.short, c, 2)} (${tradesLabel(p.shortN)})`,
 					];
 				},
 				firstLast: [dateShort(curves[0].trade.at), dateShort(curves[curves.length - 1].trade.at)],
@@ -125,7 +125,7 @@ export const hoursWidget: Widget = {
 		const box = card.createDiv({ cls: "tradoshi-insight tradoshi-xhours" });
 		const line = (label: string, b: HourBucket): void => {
 			const l = box.createDiv();
-			l.createSpan({ text: `${label} : ` });
+			l.createSpan({ text: `${label}${colon()}` });
 			l.createSpan({ cls: "tradoshi-strong", text: hourRange(b.hour) });
 			l.createSpan({ cls: `tradoshi-strong ${sign(b.net)}`, text: ` ${money(b.net, c)}` });
 			l.createSpan({ cls: "tradoshi-muted", text: ` · ${money(b.net / b.trades, c)}/${perTrade()} · ${tradesLabel(b.trades)}` });

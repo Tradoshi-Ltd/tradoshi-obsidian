@@ -1,4 +1,4 @@
-import { amount, money, num, sign } from "../format";
+import { amount, money, num, pctSign, sign } from "../format";
 import { cardTitle, emptyCard, type Widget } from "../widgets/types";
 import { openAccounts } from "./index";
 import { accountSettings } from "./settings";
@@ -28,7 +28,7 @@ export const aumWidget: Widget = {
 		const start = rows.reduce((s, r) => s + (r.s.initial ?? 0), 0);
 		const big = card.createDiv({ cls: "tradoshi-aum-total" });
 		big.createSpan({ text: amount(total, ctx.currency) });
-		big.createSpan({ cls: `tradoshi-aum-change ${sign(total - start)}`, text: ` ${money(total - start, ctx.currency)}${start ? ` (${num(((total - start) / start) * 100, 1)} %)` : ""}` });
+		big.createSpan({ cls: `tradoshi-aum-change ${sign(total - start)}`, text: ` ${money(total - start, ctx.currency)}${start ? ` (${num(((total - start) / start) * 100, 1)}${pctSign()})` : ""}` });
 		for (const r of rows) {
 			const line = card.createDiv({ cls: "tradoshi-aum-row" });
 			line.createSpan({ text: r.name });
@@ -61,7 +61,7 @@ export const targetsWidget: Widget = {
 			const row = card.createDiv({ cls: "tradoshi-target" });
 			const head = row.createDiv({ cls: "tradoshi-aum-row" });
 			head.createSpan({ text: r.name });
-			head.createSpan({ cls: "tradoshi-num", text: `${num(pct, 0)} %` });
+			head.createSpan({ cls: "tradoshi-num", text: `${num(pct, 0)}${pctSign()}` });
 			row.createDiv({ cls: "tradoshi-target-track" }).createDiv({ cls: `tradoshi-target-fill${r.f.net >= target ? " is-done" : ""}` }).setCssProps({ "--w": `${pct}%` });
 			row.createDiv({ cls: "tradoshi-small tradoshi-muted", text: r.f.net >= target ? at("targetReached") : at("targetLeft", { v: amount(target - r.f.net, r.f.currency) }) });
 			sparkline(row, r.f.curve.map((p) => p.value), r.name);

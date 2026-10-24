@@ -1,5 +1,5 @@
 import { tradesLabel } from "../i18n";
-import { compact, money, sign } from "../format";
+import { compact, money, pctSign, sign } from "../format";
 import type { Group } from "../stats";
 import type { WidgetContext } from "./types";
 
@@ -117,7 +117,7 @@ export function groupBars(card: HTMLElement, groups: Group[], currency: string, 
 		label.createDiv({ text: g.label });
 		label.createDiv({
 			cls: "tradoshi-bar-sub",
-			text: `${tradesLabel(g.trades)}${g.winRate === null ? "" : ` · ${Math.round(g.winRate)} %`} · ${money(g.expectancy, currency)}/${perTrade}`,
+			text: `${tradesLabel(g.trades)}${g.winRate === null ? "" : ` · ${Math.round(g.winRate)}${pctSign()}`} · ${money(g.expectancy, currency)}/${perTrade}`,
 		});
 		const track = row.createDiv({ cls: "tradoshi-bar-track" });
 		const bar = track.createDiv({ cls: `tradoshi-bar ${g.net >= 0 ? "is-gain" : "is-loss"}` });

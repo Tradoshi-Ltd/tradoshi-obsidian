@@ -1,5 +1,5 @@
 import { locale, t, tradesLabel } from "../i18n";
-import { money, num, sign } from "../format";
+import { colon, money, num, pctSign, sign } from "../format";
 import { dayTotals } from "../stats";
 import { dailyResults, dayKey, SCORE_MIN_DAYS, SCORE_MIN_TRADES, streaks, tradingScore, weekSummary, yearGrid, type Run, type ScorePart, type WeekStats } from "../stats-advanced";
 import { columns } from "./charts";
@@ -103,12 +103,12 @@ export const weekSummaryWidget: Widget = {
 			b.createDiv({ cls: `tradoshi-xweek-net ${sign(w.net)}`, text: money(w.net, c) });
 			b.createDiv({
 				cls: "tradoshi-muted tradoshi-xweek-line",
-				text: `${tradesLabel(w.trades)} · ${daysTraded(w.daysTraded)}${w.winRate === null ? "" : ` · ${num(w.winRate, 0)} %`}`,
+				text: `${tradesLabel(w.trades)} · ${daysTraded(w.daysTraded)}${w.winRate === null ? "" : ` · ${num(w.winRate, 0)}${pctSign()}`}`,
 			});
 			const day = (label: string, d: { day: string; pnl: number } | null): void => {
 				if (!d) return;
 				const l = b.createDiv({ cls: "tradoshi-xweek-line" });
-				l.createSpan({ cls: "tradoshi-muted", text: `${label} : ${dayLong(d.day)} ` });
+				l.createSpan({ cls: "tradoshi-muted", text: `${label}${colon()}${dayLong(d.day)} ` });
 				l.createSpan({ cls: `tradoshi-strong ${sign(d.pnl)}`, text: money(d.pnl, c) });
 			};
 			day(tr("weekBest"), w.best);
@@ -151,7 +151,7 @@ export const streaksWidget: Widget = {
 			b.createDiv({ cls: "tradoshi-muted tradoshi-small", text: now ? `${tr("streakNow")} · ${dateOf(now.from)}` : tr("streakNow") });
 			const record = (name: string, r: Run | null, tone: string): void => {
 				const l = b.createDiv({ cls: "tradoshi-xweek-line" });
-				l.createSpan({ cls: "tradoshi-muted", text: `${name} : ` });
+				l.createSpan({ cls: "tradoshi-muted", text: `${name}${colon()}` });
 				l.createSpan({ cls: `tradoshi-strong ${r ? tone : ""}`, text: r ? label(r.kind, r.length) : "–" });
 				if (r && r.length > 1) l.createSpan({ cls: "tradoshi-muted", text: ` · ${tr("fromTo", { from: dateOf(r.from), to: dateOf(r.to) })}` });
 			};
@@ -180,12 +180,12 @@ const PERCENT_PARTS = new Set(["winRate", "greenDays", "discipline"]);
 function partValue(p: ScorePart): string {
 	if (p.value === null) return "–";
 	if (p.value === Infinity) return tr("noLoss");
-	return PERCENT_PARTS.has(p.id) ? `${num(p.value, 1)} %` : num(p.value);
+	return PERCENT_PARTS.has(p.id) ? `${num(p.value, 1)}${pctSign()}` : num(p.value);
 }
 
 function ruleValue(p: ScorePart, v: number): string {
 	const n = Number.isInteger(v) ? String(v) : num(v, 1);
-	return PERCENT_PARTS.has(p.id) ? `${n} %` : n;
+	return PERCENT_PARTS.has(p.id) ? `${n}${pctSign()}` : n;
 }
 
 function band(score: number): { label: string; tone: string } {

@@ -1,5 +1,5 @@
 import { emotionLabel, locale, t, tradesLabel } from "../i18n";
-import { compactNumber, dateLabel, money, noonOf, num, sign } from "../format";
+import { colon, compactNumber, dateLabel, money, noonOf, num, pctSign, sign } from "../format";
 import { previousPeriod } from "../filters";
 import { byCategory, byEmotion, byWeekday, dayTotals, equity, kpis, mainCurrency, planSplit, type Group } from "../stats";
 import { columns, groupBars, lineChart, tiles } from "./charts";
@@ -25,7 +25,7 @@ export const kpisWidget: Widget = {
 		const before = (text: string): string => (p ? t("previousPeriod", { v: text }) : " ");
 		tiles(card, [
 			{ label: t("net"), value: money(k.net, k.currency), sub: before(p ? money(p.net, k.currency) : ""), tone: sign(k.net) },
-			{ label: t("winRate"), value: k.winRate === null ? "–" : `${num(k.winRate, 1)} %`, sub: before(p?.winRate == null ? "–" : `${num(p.winRate, 1)} %`) },
+			{ label: t("winRate"), value: k.winRate === null ? "–" : `${num(k.winRate, 1)}${pctSign()}`, sub: before(p?.winRate == null ? "–" : `${num(p.winRate, 1)}${pctSign()}`) },
 			{ label: t("profitFactor"), value: k.profitFactor === null ? "–" : num(k.profitFactor), sub: t("winsOverLosses") },
 			{ label: t("expectancy"), value: k.expectancy === null ? "–" : money(k.expectancy, k.currency), sub: t("perTrade"), tone: sign(k.expectancy ?? 0) },
 			{
@@ -64,7 +64,7 @@ export const equityWidget: Widget = {
 				value: p.value,
 				tip: [
 					dateLabel(p.at, { weekday: "short", day: "numeric", month: "short" }),
-					`${p.trade.symbol} ${t(p.trade.side)} : ${money(p.trade.pnl, ctx.currency, 2)}`,
+					`${p.trade.symbol} ${t(p.trade.side)}${colon()}${money(p.trade.pnl, ctx.currency, 2)}`,
 					`Σ ${money(p.value, ctx.currency, 2)}`,
 				],
 			})),
@@ -166,7 +166,7 @@ export const disciplineWidget: Widget = {
 			const line = (label: string, g: Group | null): void => {
 				if (!g) return;
 				const l = box.createDiv();
-				l.createSpan({ text: `${label} : ` });
+				l.createSpan({ text: `${label}${colon()}` });
 				l.createSpan({ cls: `tradoshi-strong ${sign(g.expectancy)}`, text: money(g.expectancy, ctx.currency) });
 				l.createSpan({ cls: "tradoshi-muted", text: ` ${t("perTrade")} (${g.trades})` });
 			};

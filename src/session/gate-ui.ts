@@ -1,3 +1,4 @@
+import { colon } from "../format";
 import { Modal, Notice, type App } from "obsidian";
 import {
 	cloneGate,
@@ -136,7 +137,7 @@ export class GateEditorModal extends Modal {
 		name.value = g.name;
 		name.addEventListener("change", () => (g.name = name.value.trim()));
 		const start = head.createEl("select", { cls: "dropdown", attr: { "aria-label": st("firstQuestion") } });
-		for (const n of g.nodes) start.createEl("option", { value: n.id, text: `${st("firstQuestion")} : ${short(n.question || n.id)}` });
+		for (const n of g.nodes) start.createEl("option", { value: n.id, text: `${st("firstQuestion")}${colon()}${short(n.question || n.id)}` });
 		start.value = g.start;
 		start.addEventListener("change", () => {
 			g.start = start.value;
@@ -237,7 +238,7 @@ export class GateEditorModal extends Modal {
 		}
 		for (const n of g.nodes) {
 			this.contentEl.querySelectorAll<HTMLOptionElement>(`option[value="node:${n.id}"]`).forEach((o) => o.setText(short(n.question || n.id)));
-			this.contentEl.querySelectorAll<HTMLOptionElement>(`option[value="${n.id}"]`).forEach((o) => o.setText(`${st("firstQuestion")} : ${short(n.question || n.id)}`));
+			this.contentEl.querySelectorAll<HTMLOptionElement>(`option[value="${n.id}"]`).forEach((o) => o.setText(`${st("firstQuestion")}${colon()}${short(n.question || n.id)}`));
 		}
 	}
 

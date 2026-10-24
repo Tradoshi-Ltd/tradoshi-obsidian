@@ -1,7 +1,7 @@
 import { Component, ItemView, MarkdownRenderer, Notice, TFile, debounce, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { sparkline } from "../accounts/view";
 import { periodStart } from "../filters";
-import { amount, compact, money, num, sign } from "../format";
+import { amount, colon, compact, money, num, pctSign, sign } from "../format";
 import { locale, t, tradesLabel } from "../i18n";
 import { loadDashData, type DashData } from "../journal-data";
 import type TradoshiPlugin from "../main";
@@ -110,7 +110,7 @@ interface Model {
 }
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
-const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)} %`);
+const pct = (v: number | null): string => (v === null ? "–" : `${num(v, 1)}${pctSign()}`);
 const rText = (v: number | null): string => (v === null ? "–" : `${v > 0 ? "+" : ""}${num(v)} R`);
 const shortDate = (ms: number): string => dateShort(ms);
 const weekdayName = (d: number): string => new Date(2024, 0, 1 + d).toLocaleDateString(locale(), { weekday: "short" });
@@ -378,7 +378,7 @@ export class SetupsView extends ItemView {
 		);
 		if (withSort) {
 			const sort = line.createEl("select", { cls: "dropdown tradoshi-select", attr: { "aria-label": st("sortBy") } });
-			for (const id of SORTS) sort.createEl("option", { value: id, text: `${st("sortBy")} : ${sortLabel(id)}` });
+			for (const id of SORTS) sort.createEl("option", { value: id, text: `${st("sortBy")}${colon()}${sortLabel(id)}` });
 			sort.value = this.prefs.sort;
 			sort.addEventListener("change", () => this.setPrefs({ sort: sort.value as SetupSort }));
 		}
@@ -542,7 +542,7 @@ export class SetupsView extends ItemView {
 				ratio: 0.32,
 				axis: (v) => (unit === "r" ? `${num(v, 1)} R` : compact(v, m.currency)),
 				firstLast: [shortDate(xs[0]), shortDate(xs[xs.length - 1])],
-				tip: (i) => [dateTime(xs[i]), ...shown.map((r, k) => `${r.name} : ${this.fmt(values[k][i], m, unit)}`)],
+				tip: (i) => [dateTime(xs[i]), ...shown.map((r, k) => `${r.name}${colon()}${this.fmt(values[k][i], m, unit)}`)],
 				open: (k) => this.show({ kind: "detail", key: shown[k].key }),
 			},
 		);
@@ -704,7 +704,7 @@ export class SetupsView extends ItemView {
 			pts.map((p) => ({
 				at: p.at,
 				value: p.value,
-				tip: [dateTime(p.at), `${p.trade.symbol} ${t(p.trade.side)} : ${unit === "r" ? rText(p.trade.r) : money(p.trade.pnl, m.currency, 2)}`, `Σ ${this.fmt(p.value, m)}`],
+				tip: [dateTime(p.at), `${p.trade.symbol} ${t(p.trade.side)}${colon()}${unit === "r" ? rText(p.trade.r) : money(p.trade.pnl, m.currency, 2)}`, `Σ ${this.fmt(p.value, m)}`],
 			})),
 			{
 				label: `${st("curve")} ${row.name}`,
@@ -751,7 +751,7 @@ export class SetupsView extends ItemView {
 		if (gap.unknown && (gap.followed.trades || gap.broken.trades)) say(st("planUnknownN", { n: gap.unknown }), "tradoshi-muted");
 		if (gap.mistakeCost !== null && gap.mistakeCost > 0) say(st("mistakeCost", { v: amount(gap.mistakeCost, c) }), "tradoshi-strong neg");
 		if (!gap.withMistakes.trades) say(st("noMistakeHere"), "tradoshi-muted");
-		for (const x of gap.mistakes.slice(0, 3)) say(`${x.tag} : ${money(x.net, c)} (${tradesLabel(x.trades)}, ${money(x.expectancy, c)}/${perTrade()})`, sign(x.net));
+		for (const x of gap.mistakes.slice(0, 3)) say(`${x.tag}${colon()}${money(x.net, c)} (${tradesLabel(x.trades)}, ${money(x.expectancy, c)}/${perTrade()})`, sign(x.net));
 
 		// Live trading against the trades missed and the backtest of the same setup.
 		const others = this.othersOf(m, row.key);
@@ -1109,7 +1109,7 @@ export class SetupsView extends ItemView {
 					ratio: 0.36,
 					axis: (v) => (unit === "r" ? `${num(v, 1)} R` : compact(v, c)),
 					firstLast: byTime ? [shortDate(xs[0]), shortDate(xs[xs.length - 1])] : ["1", String(xs[xs.length - 1])],
-					tip: (i) => [byTime ? dateTime(xs[i]) : st("tradeN", { n: xs[i] }), ...rows.map((r, k) => `${r.name} : ${this.fmt(values[k][i], m, unit)}`)],
+					tip: (i) => [byTime ? dateTime(xs[i]) : st("tradeN", { n: xs[i] }), ...rows.map((r, k) => `${r.name}${colon()}${this.fmt(values[k][i], m, unit)}`)],
 					open: (k) => this.show({ kind: "detail", key: rows[k].key }),
 				},
 			);

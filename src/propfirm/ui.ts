@@ -1,5 +1,5 @@
 import { setIcon } from "obsidian";
-import { amount, dateLabel, money, noonOf, num, sign } from "../format";
+import { amount, dateLabel, money, noonOf, num, pctSign, sign } from "../format";
 import type { Alert, ChallengeEval, DrawdownMode, Economics, Phase, RuleId, RuleResult, RuleStatus } from "./rules";
 import { limitAmount } from "./rules";
 import { tr } from "./texts";
@@ -180,7 +180,7 @@ export function alertRow(parent: HTMLElement, ev: ChallengeEval, a: Alert, onCli
 export function roiText(e: { cost: number; net: number; roi: number | null }): string {
 	if (e.roi === null) return "–";
 	if (Math.abs(e.net) < 0.5) return tr("breakEven");
-	return `${e.roi > 0 ? "+" : ""}${num(e.roi, 0)} %`;
+	return `${e.roi > 0 ? "+" : ""}${num(e.roi, 0)}${pctSign()}`;
 }
 
 /** Cost, payouts, net and return of the evaluations, in one currency. */
@@ -202,7 +202,7 @@ export function phaseSummary(p: Phase, size: number, cur: string): string {
 	const r = p.rules;
 	const lim = (l: { value: number; unit: "amount" | "percent" } | null): string => {
 		if (!l) return "";
-		return l.unit === "percent" ? `${num(l.value, l.value % 1 ? 1 : 0)} %` : amount(limitAmount(l, size) ?? 0, cur);
+		return l.unit === "percent" ? `${num(l.value, l.value % 1 ? 1 : 0)}${pctSign()}` : amount(limitAmount(l, size) ?? 0, cur);
 	};
 	const parts: string[] = [];
 	if (r.profitTarget) parts.push(`${tr("rTarget")} ${lim(r.profitTarget)}`);
@@ -210,7 +210,7 @@ export function phaseSummary(p: Phase, size: number, cur: string): string {
 	if (r.dailyLoss) parts.push(`${tr("rDailyLoss")} ${lim(r.dailyLoss)}`);
 	if (r.minDays) parts.push(tr("minDaysShort", { n: r.minDays }));
 	if (r.maxDays) parts.push(tr("maxDaysShort", { n: r.maxDays }));
-	if (r.consistency) parts.push(`${tr("rConsistency")} ${num(r.consistency, 0)} %`);
+	if (r.consistency) parts.push(`${tr("rConsistency")} ${num(r.consistency, 0)}${pctSign()}`);
 	if (p.funded && p.payout?.split) parts.push(tr("splitShort", { n: num(p.payout.split, 0) }));
 	return parts.length ? parts.join(" · ") : tr("noRules");
 }

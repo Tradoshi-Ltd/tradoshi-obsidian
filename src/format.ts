@@ -1,4 +1,4 @@
-import { locale } from "./i18n";
+import { language, locale } from "./i18n";
 
 // Number and date formatting shared by every view, in the trader's language. Pure.
 
@@ -7,7 +7,7 @@ export const sign = (v: number): string => (v > 0 ? "pos" : v < 0 ? "neg" : "");
 
 export function money(v: number, currency: string, digits = 0): string {
 	try {
-		return new Intl.NumberFormat(locale(), { style: "currency", currency, maximumFractionDigits: digits, minimumFractionDigits: digits, signDisplay: "exceptZero" }).format(v);
+		return new Intl.NumberFormat(locale(), { style: "currency", currency, currencyDisplay: "narrowSymbol", maximumFractionDigits: digits, minimumFractionDigits: digits, signDisplay: "exceptZero" }).format(v);
 	} catch {
 		return `${v > 0 ? "+" : ""}${v.toFixed(digits)} ${currency}`;
 	}
@@ -16,7 +16,7 @@ export function money(v: number, currency: string, digits = 0): string {
 /** A money amount without sign, for limits and targets: "5 000 $". */
 export function amount(v: number, currency: string, digits = 0): string {
 	try {
-		return new Intl.NumberFormat(locale(), { style: "currency", currency, maximumFractionDigits: digits, minimumFractionDigits: digits }).format(v);
+		return new Intl.NumberFormat(locale(), { style: "currency", currency, currencyDisplay: "narrowSymbol", maximumFractionDigits: digits, minimumFractionDigits: digits }).format(v);
 	} catch {
 		return `${v.toFixed(digits)} ${currency}`;
 	}
@@ -24,7 +24,7 @@ export function amount(v: number, currency: string, digits = 0): string {
 
 export function compact(v: number, currency: string): string {
 	try {
-		return new Intl.NumberFormat(locale(), { style: "currency", currency, notation: "compact", maximumFractionDigits: 1, signDisplay: "exceptZero" }).format(v);
+		return new Intl.NumberFormat(locale(), { style: "currency", currency, currencyDisplay: "narrowSymbol", notation: "compact", maximumFractionDigits: 1, signDisplay: "exceptZero" }).format(v);
 	} catch {
 		return money(v, currency);
 	}
@@ -33,7 +33,7 @@ export function compact(v: number, currency: string): string {
 /** A short amount without sign, for a balance: "230,8 k €". */
 export function compactAmount(v: number, currency: string): string {
 	try {
-		return new Intl.NumberFormat(locale(), { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 }).format(v);
+		return new Intl.NumberFormat(locale(), { style: "currency", currency, currencyDisplay: "narrowSymbol", notation: "compact", maximumFractionDigits: 1 }).format(v);
 	} catch {
 		return amount(v, currency);
 	}
@@ -48,8 +48,21 @@ export function num(v: number, digits = 2): string {
 	return new Intl.NumberFormat(locale(), { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(v);
 }
 
+const NBSP = String.fromCharCode(160);
+
+/** The percent sign as each language writes it: "48.4%" in English and Portuguese, "48,4 %" in French and Spanish. */
+export function pctSign(): string {
+	const l = language();
+	return l === "fr" || l === "es" ? `${NBSP}%` : "%";
+}
+
+/** A colon followed by a space, as each language writes it: "Win rate: ", "Taux de réussite : ". */
+export function colon(): string {
+	return language() === "fr" ? `${NBSP}: ` : ": ";
+}
+
 export function percent(v: number, digits = 1): string {
-	return `${num(v, digits)} %`;
+	return `${num(v, digits)}${pctSign()}`;
 }
 
 export function dateLabel(ms: number, opts: Intl.DateTimeFormatOptions): string {

@@ -1,5 +1,5 @@
 import { MarkdownRenderChild, MarkdownRenderer, setIcon, TFile, type App } from "obsidian";
-import { money, num, sign } from "../format";
+import { colon, money, num, pctSign, sign } from "../format";
 import { t, tradesLabel } from "../i18n";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
@@ -163,7 +163,7 @@ export class DayCard extends MarkdownRenderChild {
 		};
 		tile(t("net"), money(f.net, c, 2), f.otherCurrency ? rt("otherCurrency", { n: f.otherCurrency }) : "", sign(f.net));
 		tile(t("trades"), String(f.trades), rt("winsLosses", { w: f.wins, l: f.losses }));
-		tile(t("winRate"), f.winRate === null ? "–" : `${num(f.winRate, 0)} %`, "");
+		tile(t("winRate"), f.winRate === null ? "–" : `${num(f.winRate, 0)}${pctSign()}`, "");
 		tile(rt("bestTrade"), f.best ? money(f.best.pnl, c, 2) : "–", f.best ? f.best.symbol : "", f.best ? "pos" : "");
 		tile(rt("worstTrade"), f.worst ? money(f.worst.pnl, c, 2) : "–", f.worst ? f.worst.symbol : "", f.worst ? "neg" : "");
 		tile("R", f.rTotal === null ? "–" : `${f.rTotal > 0 ? "+" : ""}${num(f.rTotal)} R`, f.rTotal === null ? "" : rt("rKnown", { n: f.rKnown, total: f.trades }), sign(f.rTotal ?? 0));
@@ -194,7 +194,7 @@ export class DayCard extends MarkdownRenderChild {
 				tip: (i) => {
 					const p = pts[i];
 					if (!p.trade) return [timeOf(this.plugin, p.at), rt("dayStart")];
-					return [timeOf(this.plugin, p.at), `${p.trade.symbol} ${t(p.trade.side)} : ${money(p.trade.pnl, f.currency, 2)}`, `Σ ${money(p.value, f.currency, 2)}`];
+					return [timeOf(this.plugin, p.at), `${p.trade.symbol} ${t(p.trade.side)}${colon()}${money(p.trade.pnl, f.currency, 2)}`, `Σ ${money(p.value, f.currency, 2)}`];
 				},
 			},
 		);
@@ -342,7 +342,7 @@ export class DayCard extends MarkdownRenderChild {
 			if (go + wait + nogo) facts.push(rt("gateCounts", { go, wait, nogo }));
 			if (typeof fm.notes === "number" && fm.notes) facts.push(rt("notesN", { n: fm.notes }));
 			card.createDiv({ cls: "tradoshi-muted tradoshi-small", text: facts.join(" · ") });
-			if (fm.unplanned === true && str(fm.reason)) card.createDiv({ cls: "tradoshi-small", text: `${rt("reason")} : ${str(fm.reason) ?? ""}` });
+			if (fm.unplanned === true && str(fm.reason)) card.createDiv({ cls: "tradoshi-small", text: `${rt("reason")}${colon()}${str(fm.reason) ?? ""}` });
 			const actions = card.createDiv({ cls: "tradoshi-dc-session-actions" });
 			actions.createEl("button", { text: rt("openNote") }).addEventListener("click", () => void openFile(this.app, file));
 			const shown = this.logs.has(file.path);

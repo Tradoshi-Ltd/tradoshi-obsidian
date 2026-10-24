@@ -1,3 +1,4 @@
+import { colon } from "../format";
 import type TradoshiPlugin from "../main";
 import type { PluginModule } from "../modules";
 import { allows, offerEvents } from "../offer";
@@ -30,7 +31,7 @@ function statusBar(plugin: TradoshiPlugin): void {
 		if (s && s.phase !== "ended") {
 			item.addClass(`is-${s.phase}`);
 			item.setText(s.phase === "prep" ? `◔ ${st("phasePrep")}` : s.phase === "break" ? `❚❚ ${st("phaseBreak")}` : `● ${clock(liveTime(s, Date.now()))}`);
-			item.setAttr("aria-label", `${st("title")} : ${s.window ?? st("unplanned")}`);
+			item.setAttr("aria-label", `${st("title")}${colon()}${s.window ?? st("unplanned")}`);
 			return;
 		}
 		const w = clockStatus(plugin);

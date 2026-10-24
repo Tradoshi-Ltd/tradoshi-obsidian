@@ -201,6 +201,8 @@
 .tradoshi-sync-hint { color: var(--text-muted); font-size: var(--font-ui-smaller); margin: var(--size-2-3) 0 var(--size-2-1); }
 .tradoshi-sample-text a.tradoshi-link-button { cursor: pointer; display: inline-block; padding: 0; font-size: var(--font-ui-small); }
 .tradoshi-deleted-row { display: flex; align-items: center; gap: var(--size-2-3); flex-wrap: wrap; margin-top: var(--size-2-3); color: var(--text-warning); font-size: var(--font-ui-small); }
+.tradoshi-import-input { display: none; }
+.tradoshi-import-pick { display: flex; align-items: center; gap: var(--size-4-2); margin: var(--size-2-3) 0; }
 
 /* Accounts view, AUM and profit target widgets */
 .tradoshi-accounts h2 { margin: 0; }

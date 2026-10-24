@@ -1,5 +1,5 @@
 import { t, tradesLabel } from "../i18n";
-import { compact, money, num, sign } from "../format";
+import { colon, compact, money, num, pctSign, sign } from "../format";
 import { dailyResults, drawdownCurve, rolling, summarize, underPeak } from "../stats-advanced";
 import { lineChart } from "./charts";
 import { chips, multiLine, svgBars } from "./analytics-charts";
@@ -29,7 +29,7 @@ export const drawdownWidget: Widget = {
 				value: p.value,
 				tip: [
 					dateTime(p.at),
-					`${p.trade.symbol} ${t(p.trade.side)} : ${money(p.trade.pnl, ctx.currency, 2)}`,
+					`${p.trade.symbol} ${t(p.trade.side)}${colon()}${money(p.trade.pnl, ctx.currency, 2)}`,
 					p.value < 0 ? tr("ddTip", { v: money(p.value, ctx.currency, 2) }) : tr("atPeak"),
 					tr("ddHigh", { v: money(p.peak, ctx.currency, 2) }),
 				],
@@ -94,7 +94,7 @@ export const tradeBarsWidget: Widget = {
 			ctx,
 			trades.map((x, i) => ({
 				value: x.pnl,
-				tip: [`#${i + 1} · ${dateTime(x.at)}`, `${x.symbol} ${t(x.side)} : ${money(x.pnl, ctx.currency, 2)}`, x.r === null ? "" : `${x.r > 0 ? "+" : ""}${num(x.r)} R`, x.path ? t("openNote") : ""].filter(Boolean),
+				tip: [`#${i + 1} · ${dateTime(x.at)}`, `${x.symbol} ${t(x.side)}${colon()}${money(x.pnl, ctx.currency, 2)}`, x.r === null ? "" : `${x.r > 0 ? "+" : ""}${num(x.r)} R`, x.path ? t("openNote") : ""].filter(Boolean),
 				open: x.path ? () => void ctx.openPath(x.path) : undefined,
 			})),
 			{ label: tr("tradesTitle"), axis: (v) => compact(v, ctx.currency), firstLast: [dateShort(trades[0].at), dateShort(trades[trades.length - 1].at)] },
@@ -157,12 +157,12 @@ export const rollingWinRateWidget: Widget = {
 			[{ name: tr("rollExtra", { n: window }), tone: "accent", values: pts.map((p) => p.winRate) }],
 			{
 				label: tr("rollWrTitle"),
-				axis: (v) => `${Math.round(v)} %`,
+				axis: (v) => `${Math.round(v)}${pctSign()}`,
 				range: [0, 100],
 				refs: period === null ? [] : [{ value: period, label: tr("periodWr", { v: Math.round(period) }) }],
 				tip: (i) => {
 					const p = pts[i];
-					return [dateTime(p.trade.at), `${t("winRate")} : ${p.winRate === null ? "–" : `${num(p.winRate, 1)} %`}`, tr("rollExtra", { n: window })];
+					return [dateTime(p.trade.at), `${t("winRate")}${colon()}${p.winRate === null ? "–" : `${num(p.winRate, 1)}${pctSign()}`}`, tr("rollExtra", { n: window })];
 				},
 				firstLast: [dateShort(pts[0].trade.at), dateShort(pts[pts.length - 1].trade.at)],
 			},
@@ -196,8 +196,8 @@ export const rollingAverageWidget: Widget = {
 					const payoff = p.avgWin !== null && p.avgLoss ? tr("payoffAt", { v: num(p.avgWin / p.avgLoss) }) : "";
 					return [
 						dateTime(p.trade.at),
-						`${tr("avgWin")} : ${p.avgWin === null ? "–" : money(p.avgWin, c)}`,
-						`${tr("avgLoss")} : ${p.avgLoss === null ? "–" : money(-p.avgLoss, c)}`,
+						`${tr("avgWin")}${colon()}${p.avgWin === null ? "–" : money(p.avgWin, c)}`,
+						`${tr("avgLoss")}${colon()}${p.avgLoss === null ? "–" : money(-p.avgLoss, c)}`,
 						payoff,
 						tr("rollExtra", { n: window }),
 					].filter(Boolean);

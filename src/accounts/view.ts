@@ -1,5 +1,5 @@
 import { ItemView, setIcon, type WorkspaceLeaf } from "obsidian";
-import { amount, compactAmount, dateLabel, money, num, percent, sign } from "../format";
+import { amount, colon, compactAmount, dateLabel, money, num, pctSign, percent, sign } from "../format";
 import { loadDashData, type DashData } from "../journal-data";
 import type TradoshiPlugin from "../main";
 import { lineChart, tiles } from "../widgets/charts";
@@ -121,7 +121,7 @@ export class AccountsView extends ItemView {
 			h.createSpan({ cls: "tradoshi-card-extra", text: at("aumHint", { c: currency }) });
 			const big = card.createDiv({ cls: "tradoshi-aum-total" });
 			big.createSpan({ text: amount(total, currency) });
-			big.createSpan({ cls: `tradoshi-aum-change ${sign(total - start)}`, text: ` ${money(total - start, currency)}${start ? ` (${num(((total - start) / start) * 100, 1)} %)` : ""}` });
+			big.createSpan({ cls: `tradoshi-aum-change ${sign(total - start)}`, text: ` ${money(total - start, currency)}${start ? ` (${num(((total - start) / start) * 100, 1)}${pctSign()})` : ""}` });
 			const curve = aumCurve(
 				same.map((r) => ({ figures: r.figures, initial: r.settings.initial ?? 0 })),
 				currency,
@@ -163,7 +163,7 @@ export class AccountsView extends ItemView {
 		const value = card.createDiv({ cls: "tradoshi-account-value" });
 		if (f.balance !== null) {
 			value.createSpan({ cls: "tradoshi-strong", text: amount(f.balance, f.currency) });
-			if (f.returnPct !== null) value.createSpan({ cls: `tradoshi-small ${sign(f.returnPct)}`, text: ` ${f.returnPct > 0 ? "+" : ""}${num(f.returnPct, 1)} %` });
+			if (f.returnPct !== null) value.createSpan({ cls: `tradoshi-small ${sign(f.returnPct)}`, text: ` ${f.returnPct > 0 ? "+" : ""}${num(f.returnPct, 1)}${pctSign()}` });
 		} else {
 			value.createSpan({ cls: `tradoshi-strong ${sign(f.net)}`, text: money(f.net, f.currency) });
 		}
@@ -176,10 +176,10 @@ export class AccountsView extends ItemView {
 		};
 		fact(at("winRate"), f.winRate === null ? "–" : percent(f.winRate));
 		fact(at("profitFactor"), f.profitFactor === null ? "–" : num(f.profitFactor));
-		fact(at("maxDd"), f.maxDrawdownPct !== null ? `-${num(f.maxDrawdownPct, 1)} %` : f.maxDrawdown ? money(-f.maxDrawdown, f.currency) : "–", f.maxDrawdown ? "neg" : "");
+		fact(at("maxDd"), f.maxDrawdownPct !== null ? `-${num(f.maxDrawdownPct, 1)}${pctSign()}` : f.maxDrawdown ? money(-f.maxDrawdown, f.currency) : "–", f.maxDrawdown ? "neg" : "");
 		fact(at("trades"), String(f.trades));
 		if (r.settings.target !== null) this.targetBar(card, f, r.settings.target);
-		if (f.last) card.createDiv({ cls: "tradoshi-muted tradoshi-small", text: `${at("lastTrade")} : ${dateLabel(f.last, { day: "numeric", month: "short", year: "numeric" })}` });
+		if (f.last) card.createDiv({ cls: "tradoshi-muted tradoshi-small", text: `${at("lastTrade")}${colon()}${dateLabel(f.last, { day: "numeric", month: "short", year: "numeric" })}` });
 		const open = (): void => {
 			this.selected = f.name;
 			this.draw();
@@ -219,10 +219,10 @@ export class AccountsView extends ItemView {
 		tiles(root, [
 			{ label: at("balance"), value: f.balance === null ? "–" : amount(f.balance, f.currency) },
 			{ label: at("net"), value: money(f.net, f.currency), tone: sign(f.net) },
-			{ label: at("returnPct"), value: f.returnPct === null ? "–" : `${f.returnPct > 0 ? "+" : ""}${num(f.returnPct, 1)} %`, tone: sign(f.returnPct ?? 0) },
+			{ label: at("returnPct"), value: f.returnPct === null ? "–" : `${f.returnPct > 0 ? "+" : ""}${num(f.returnPct, 1)}${pctSign()}`, tone: sign(f.returnPct ?? 0) },
 			{ label: at("winRate"), value: f.winRate === null ? "–" : percent(f.winRate) },
 			{ label: at("profitFactor"), value: f.profitFactor === null ? "–" : num(f.profitFactor) },
-			{ label: at("maxDd"), value: f.maxDrawdown ? money(-f.maxDrawdown, f.currency) : "–", sub: f.maxDrawdownPct === null ? undefined : `-${num(f.maxDrawdownPct, 1)} %`, tone: f.maxDrawdown ? "neg" : "" },
+			{ label: at("maxDd"), value: f.maxDrawdown ? money(-f.maxDrawdown, f.currency) : "–", sub: f.maxDrawdownPct === null ? undefined : `-${num(f.maxDrawdownPct, 1)}${pctSign()}`, tone: f.maxDrawdown ? "neg" : "" },
 			{ label: at("currentDd"), value: f.currentDrawdown ? money(-f.currentDrawdown, f.currency) : "–", tone: f.currentDrawdown ? "neg" : "" },
 			{ label: at("trades"), value: String(f.trades), sub: f.last ? dateLabel(f.last, { day: "numeric", month: "short" }) : undefined },
 		]);

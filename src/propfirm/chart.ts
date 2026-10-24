@@ -1,4 +1,4 @@
-import { amount, dateLabel, money, noonOf } from "../format";
+import { amount, colon, dateLabel, money, noonOf } from "../format";
 import { locale } from "../i18n";
 import type { Challenge, PhaseEval } from "./rules";
 import { tr } from "./texts";
@@ -90,7 +90,7 @@ export function balanceChart(parent: HTMLElement, tipper: Tipper, c: Challenge, 
 		dot.setAttr("cy", y(p.balance));
 		svg.addClass("is-hover");
 		const lines = [dateLabel(noonOf(p.day), { weekday: "short", day: "numeric", month: "short" })];
-		if (p.trade) lines.push(`${p.trade.symbol} : ${money(p.trade.pnl, cur, 2)}`);
+		if (p.trade) lines.push(`${p.trade.symbol}${colon()}${money(p.trade.pnl, cur, 2)}`);
 		else if (p.payout) lines.push(tr("tipPayout", { v: amount(p.payout.amount, cur) }));
 		else lines.push(tr("tipStart"));
 		lines.push(tr("tipBalance", { v: amount(p.balance, cur, 2) }));

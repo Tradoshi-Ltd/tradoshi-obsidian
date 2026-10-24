@@ -1,3 +1,4 @@
+import { colon } from "./format";
 import { ItemView, Notice, TFile, type WorkspaceLeaf } from "obsidian";
 import { CustomizeModal } from "./customize-modal";
 import { FilterModal } from "./filter-modal";
@@ -140,7 +141,7 @@ export class DashboardView extends ItemView {
 				// One widget that fails never takes the dashboard down with it.
 				console.error(`Tradoshi widget ${widget.id}`, e);
 				card.empty();
-				card.createEl("p", { cls: "tradoshi-empty", text: `${widget.title()} : ${t("widgetError")}` });
+				card.createEl("p", { cls: "tradoshi-empty", text: `${widget.title()}${colon()}${t("widgetError")}` });
 			}
 		}
 		this.tip = root.createDiv({ cls: "tradoshi-tip" });

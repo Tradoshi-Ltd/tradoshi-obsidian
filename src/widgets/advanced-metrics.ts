@@ -1,5 +1,5 @@
 import { t } from "../i18n";
-import { amount, money, num, sign } from "../format";
+import { amount, money, num, pctSign, sign } from "../format";
 import { advancedMetrics } from "../stats-advanced";
 import type { DashTrade } from "../stats";
 import { infoTiles, type InfoTile } from "./analytics-charts";
@@ -63,7 +63,7 @@ export const advancedMetricsWidget: Widget = {
 			{ label: tr("avgLoss"), value: m.avgLoss === null ? DASH : money(m.avgLoss, c), sub: outcomeCount("loss", m.losses), tone: "neg" },
 			{ label: tr("largestWin"), value: m.largestWin ? money(m.largestWin.pnl, c) : DASH, sub: tradeSub(m.largestWin), tone: "pos" },
 			{ label: tr("largestLoss"), value: m.largestLoss ? money(m.largestLoss.pnl, c) : DASH, sub: tradeSub(m.largestLoss), tone: "neg" },
-			{ label: tr("breakEven"), value: m.breakEvenRate === null ? DASH : `${num(m.breakEvenRate, 1)} %`, sub: tr("breakEvenSub", { n: m.evens }) },
+			{ label: tr("breakEven"), value: m.breakEvenRate === null ? DASH : `${num(m.breakEvenRate, 1)}${pctSign()}`, sub: tr("breakEvenSub", { n: m.evens }) },
 			{ label: tr("winStreak"), value: String(st.bestWin?.length ?? 0), sub: tr("inARow"), tone: st.bestWin ? "pos" : "", info: [tr("streakInfo")] },
 			{ label: tr("lossStreak"), value: String(st.bestLoss?.length ?? 0), sub: tr("inARow"), tone: st.bestLoss ? "neg" : "", info: [tr("streakInfo")] },
 			{

@@ -182,7 +182,7 @@ export function appLink(ctx: Pick<RenderContext, "appUrl">, campaign: string, ha
 }
 
 const SITE_URL = "https://tradoshi.com";
-const GUIDE_PATHS: Record<string, string> = { fr: "/obsidian.html", es: "/es/obsidian.html" };
+const GUIDE_PATHS: Record<string, string> = { fr: "/obsidian", es: "/es/obsidian" };
 
 const IDEAS_PATHS: Record<string, string> = { fr: "/forum/idees", es: "/es/forum/ideas", pt: "/pt/forum/ideias" };
 
@@ -193,7 +193,7 @@ export function ideasLink(language: string, campaign: string): string {
 
 /** The page that explains the plugin step by step, in the trader's language (English otherwise). */
 export function guideLink(language: string, campaign: string): string {
-	return `${SITE_URL}${GUIDE_PATHS[language] ?? "/en/obsidian.html"}?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}`;
+	return `${SITE_URL}${GUIDE_PATHS[language] ?? "/en/obsidian"}?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}`;
 }
 
 // ── Trade notes ─────────────────────────────────────────────────────────────
@@ -393,7 +393,7 @@ export function dayBlock(ctx: RenderContext, date: string, records: NoteRecord[]
 	if (sorted.length) {
 		const s = summarize(sorted);
 		const rate = winRate(s);
-		lines.push(`> [!info]- **Net P&L:** ${pnlText(s)} · **Trades:** ${s.trades}${rate === null ? "" : ` · **Win rate:** ${rate} %`}`);
+		lines.push(`> [!info]- **Net P&L:** ${pnlText(s)} · **Trades:** ${s.trades}${rate === null ? "" : ` · **Win rate:** ${rate}%`}`);
 		const table = ["| Time | Trade | Volume | P&L | R | Account |", "|---|---|---|---|---|---|"];
 		for (const r of sorted) {
 			const label = `${r.symbol.replace(/[|[\]]/g, "")} ${r.side}`;
@@ -440,7 +440,7 @@ export function overviewBlock(ctx: RenderContext, accounts: OverviewAccount[], r
 	const s = summarize(records.filter((r) => r.day >= since));
 	const rate = winRate(s);
 	lines.push("", "## Last 30 days", "", "| Net P&L | Trades | Win rate |", "|---|---|---|");
-	lines.push(`| ${pnlText(s)} | ${s.trades} | ${rate === null ? "-" : `${rate} %`} |`);
+	lines.push(`| ${pnlText(s)} | ${s.trades} | ${rate === null ? "-" : `${rate}%`} |`);
 
 	const days = [...new Set(records.map((r) => r.day))].sort().reverse().slice(0, 10);
 	if (days.length) {
