@@ -225,7 +225,8 @@ export class DashboardView extends ItemView {
 		text.createEl("strong", { text: t("noAccountTitle", { n: this.plugin.tradeNoteCount(), max: FREE_IMPORT_LIMIT }) });
 		text.createEl("p", { text: t("noAccountText") });
 		const buttons = box.createDiv({ cls: "tradoshi-sample-buttons" });
-		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => this.plugin.connect("dashboard_no_account"));
+		buttons.createEl("button", { cls: "mod-cta", text: t("syncCta") }).addEventListener("click", () => this.plugin.connect("dashboard_no_account_sync"));
+		buttons.createEl("button", { text: t("connect") }).addEventListener("click", () => this.plugin.connect("dashboard_no_account"));
 		if (this.plugin.pairingPending()) text.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 	}
 
@@ -235,8 +236,10 @@ export class DashboardView extends ItemView {
 		left.createEl("strong", { text: t("sampleTitle") });
 		left.createEl("p", { text: t("sampleText") });
 		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
-		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => this.plugin.connect("dashboard_sample"));
+		buttons.createEl("button", { cls: "mod-cta", text: t("syncCta") }).addEventListener("click", () => this.plugin.connect("dashboard_sync"));
 		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		left.createEl("p", { cls: "tradoshi-sync-hint", text: t("syncHint") });
+		left.createEl("a", { cls: "tradoshi-link-button", text: t("connectFreeLink") }).addEventListener("click", () => this.plugin.connect("dashboard_sample"));
 		if (this.plugin.pairingPending()) left.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 
 		const flow = box.createDiv({ cls: "tradoshi-flow" });
