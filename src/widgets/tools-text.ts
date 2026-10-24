@@ -2,6 +2,10 @@ import { makeT } from "../i18n";
 
 export const wt = makeT({
 	en: {
+		privacy: "Privacy mode",
+		cmdPrivacy: "Turn privacy mode on or off",
+		privacyOn: "Privacy mode on: amounts and charts are blurred.",
+		privacyOff: "Privacy mode off.",
 		dashboard: "Dashboard",
 		unreviewed: "Trades to review",
 		unreviewedCount: "{n} trades of the period are not reviewed yet.",
@@ -37,6 +41,10 @@ export const wt = makeT({
 		show: "Show",
 	},
 	fr: {
+		privacy: "Mode confidentialité",
+		cmdPrivacy: "Activer ou couper le mode confidentialité",
+		privacyOn: "Mode confidentialité activé : montants et graphiques floutés.",
+		privacyOff: "Mode confidentialité coupé.",
 		dashboard: "Tableau de bord",
 		unreviewed: "Trades à revoir",
 		unreviewedCount: "{n} trades de la période ne sont pas encore revus.",
@@ -72,6 +80,10 @@ export const wt = makeT({
 		show: "Afficher",
 	},
 	es: {
+		privacy: "Modo privacidad",
+		cmdPrivacy: "Activar o desactivar el modo privacidad",
+		privacyOn: "Modo privacidad activado: importes y gráficos difuminados.",
+		privacyOff: "Modo privacidad desactivado.",
 		dashboard: "Panel",
 		unreviewed: "Operaciones por revisar",
 		unreviewedCount: "{n} operaciones del periodo aún no están revisadas.",
@@ -107,6 +119,10 @@ export const wt = makeT({
 		show: "Mostrar",
 	},
 	pt: {
+		privacy: "Modo privacidade",
+		cmdPrivacy: "Ativar ou desativar o modo privacidade",
+		privacyOn: "Modo privacidade ativado: valores e gráficos desfocados.",
+		privacyOff: "Modo privacidade desativado.",
 		dashboard: "Painel",
 		unreviewed: "Trades a revisar",
 		unreviewedCount: "{n} trades do período ainda não foram revisados.",

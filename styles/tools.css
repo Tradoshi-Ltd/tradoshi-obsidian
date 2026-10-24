@@ -11,3 +11,8 @@
 .tradoshi-ps-size { font-size: 1.3em; font-weight: var(--font-bold); }
 .tradoshi-pinned { max-height: 420px; overflow: auto; font-size: var(--font-ui-small); }
 .tradoshi-pinned > a { display: block; margin-bottom: var(--size-2-2); cursor: pointer; }
+
+/* Privacy mode: amounts, figures, chart values and media blurred */
+.tradoshi-privacy :is(.tradoshi-dash, .tradoshi-tc, .tradoshi-nav) :is(.tradoshi-kpi-value, .tradoshi-num, .tradoshi-cell-pnl, .tradoshi-bar-value, .tradoshi-aum-total, .tradoshi-account-value, .tradoshi-tc-pnl, .tradoshi-tc-r, .tradoshi-axis, .tradoshi-ref-label, .tradoshi-tip, .tradoshi-ps-result, .pos, .neg),
+.tradoshi-privacy :is(.tradoshi-gallery-shot, .tradoshi-tc-thumbs, .tradoshi-tc-mark-label) { filter: blur(6px); }
+.tradoshi-privacy :is(.tradoshi-dash, .tradoshi-tc) .tradoshi-chart :is(.tradoshi-line, .tradoshi-area) { filter: blur(3px); }

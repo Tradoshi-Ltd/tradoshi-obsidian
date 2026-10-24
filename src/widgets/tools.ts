@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, MarkdownRenderer, Modal, Setting, setIcon, TFile, type App } from "obsidian";
+import { FuzzySuggestModal, MarkdownRenderer, Modal, Notice, Setting, setIcon, TFile, type App } from "obsidian";
 import { accountSettings } from "../accounts/settings";
 import { accountFigures, positionSize } from "../accounts/stats";
 import { amount, dateLabel, money, num, sign } from "../format";
@@ -232,10 +232,29 @@ export function openPositionSize(plugin: TradoshiPlugin): void {
 	new PositionSizeModal(plugin.app, plugin, null, trades.length ? mainCurrency(trades) : "USD").open();
 }
 
+/** Privacy mode: amounts, figures and charts blurred, for a screenshot or a stream. */
+function applyPrivacy(plugin: TradoshiPlugin, doc: Document): void {
+	doc.body.toggleClass("tradoshi-privacy", plugin.moduleData<boolean>("privacy", false));
+}
+
+async function togglePrivacy(plugin: TradoshiPlugin): Promise<void> {
+	const on = !plugin.moduleData<boolean>("privacy", false);
+	await plugin.saveModuleData("privacy", on);
+	applyPrivacy(plugin, activeDocument);
+	new Notice(on ? wt("privacyOn") : wt("privacyOff"));
+}
+
 export const toolsModule: PluginModule = {
 	id: "tools",
 	load(plugin) {
 		plugin.addCommand({ id: "open-position-size", name: wt("cmdPositionSize"), callback: () => openPositionSize(plugin) });
+		plugin.addCommand({ id: "toggle-privacy", name: wt("cmdPrivacy"), callback: () => void togglePrivacy(plugin) });
+		plugin.app.workspace.onLayoutReady(() => applyPrivacy(plugin, activeDocument));
+		plugin.registerEvent(plugin.app.workspace.on("window-open", (win) => applyPrivacy(plugin, win.doc)));
+		plugin.register(() => activeDocument.body.removeClass("tradoshi-privacy"));
 	},
-	places: (plugin) => [{ id: "position-size", label: () => wt("positionSize"), icon: "calculator", open: () => openPositionSize(plugin) }],
+	places: (plugin) => [
+		{ id: "position-size", label: () => wt("positionSize"), icon: "calculator", open: () => openPositionSize(plugin) },
+		{ id: "privacy", label: () => wt("privacy"), icon: "eye-off", open: () => void togglePrivacy(plugin) },
+	],
 };
