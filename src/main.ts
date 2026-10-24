@@ -6,7 +6,7 @@ import { NO_FILTERS } from "./filters";
 import { ImportModal } from "./import-modal";
 import { t } from "./i18n";
 import { modules } from "./modules";
-import { normalizeOffer, offerEvents } from "./offer";
+import { normalizeOffer, offerEvents, openLock } from "./offer";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -52,6 +52,8 @@ export default class TradoshiPlugin extends Plugin {
 	private autoSyncTimer: number | null = null;
 	// A rejected token is reported once per session, not at every automatic sync.
 	private tokenWarned = false;
+	/** The trader was told once this session that sync needs the Essential plan. */
+	private planWarned = false;
 	/** Identity of every Tradoshi note, by path, kept up to date as the trader edits the vault. */
 	private keyByPath = new Map<string, string>();
 	private saveTimer: number | null = null;
@@ -312,6 +314,7 @@ export default class TradoshiPlugin extends Plugin {
 					this.settings.lastSync = null;
 					this.settings.offer = null;
 					this.tokenWarned = false;
+					this.planWarned = false;
 					await this.saveSettings();
 					new Notice(`Tradoshi: ${t("nConnected")}`);
 					await this.sync(true);
@@ -395,6 +398,17 @@ export default class TradoshiPlugin extends Plugin {
 			// Notes just written are read by the dashboard once Obsidian has indexed them.
 			window.setTimeout(() => this.refreshDashboards(), 1500);
 		} catch (e) {
+			// Sync is part of the Essential plan: the vault keeps what it has, imports and
+			// trades entered by hand go on, and the trader is told once, or each time he asks.
+			if (e instanceof TradoshiError && e.code === "plan_required") {
+				const changed = this.settings.offer?.code !== "gratuit";
+				this.settings.offer = { code: "gratuit", trial: false, until: null, at: new Date().toISOString() };
+				await this.saveSettings();
+				if (changed) this.offerChanged();
+				if (manual || !this.planWarned) openLock(this, "essentiel", t("syncTitle"));
+				this.planWarned = true;
+				return;
+			}
 			const message = e instanceof TradoshiError ? e.message : t("nUnexpected");
 			const tokenProblem = e instanceof TradoshiError && e.status === 401;
 			if (manual || (tokenProblem && !this.tokenWarned)) new Notice(`Tradoshi: ${message}`, 10000);
