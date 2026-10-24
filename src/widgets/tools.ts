@@ -224,6 +224,34 @@ export const pinnedNoteWidget: Widget = {
 	},
 };
 
+/** The Tradoshi notes opened last: trades, days, reviews, setups. */
+export const recentItemsWidget: Widget = {
+	id: "recent-items",
+	title: () => wt("recentItems"),
+	size: "narrow",
+	defaultOn: false,
+	render(card, ctx) {
+		cardTitle(card, wt("recentItems"));
+		const items = ctx.app.workspace
+			.getLastOpenFiles()
+			.map((path) => ctx.app.vault.getFileByPath(path))
+			.filter((f): f is TFile => f instanceof TFile)
+			.map((f) => ({ f, fm: ctx.app.metadataCache.getFileCache(f)?.frontmatter }))
+			.filter(({ fm }) => !!fm && Object.keys(fm).some((k) => k.startsWith("tradoshi_")))
+			.slice(0, 8);
+		if (!items.length) {
+			emptyCard(card, wt("noRecent"));
+			return;
+		}
+		const list = card.createDiv({ cls: "tradoshi-review-list" });
+		for (const { f } of items) {
+			const row = list.createEl("button", { cls: "tradoshi-review-row" });
+			row.createSpan({ text: f.basename });
+			row.addEventListener("click", () => void ctx.openPath(f.path));
+		}
+	},
+};
+
 export const TOOL_WIDGETS: Widget[] = [quickLinksWidget, unreviewedWidget, positionSizeWidget, pinnedNoteWidget];
 
 /** The position size calculator from the command palette, in the currency most trades are in. */

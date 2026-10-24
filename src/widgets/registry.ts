@@ -3,7 +3,7 @@ import { ANALYTICS_WIDGETS } from "./analytics";
 import { PROPFIRM_WIDGETS } from "../propfirm/widgets";
 import { missedWidget } from "../tradelog/missed-widget";
 import { CORE_WIDGETS } from "./core";
-import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, unreviewedWidget } from "./tools";
+import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, recentItemsWidget, unreviewedWidget } from "./tools";
 import type { Widget } from "./types";
 
 // Every widget the dashboard can show, in the default order. A new widget is added to
@@ -20,6 +20,7 @@ export const WIDGETS: Widget[] = [
 	positionSizeWidget,
 	missedWidget,
 	pinnedNoteWidget,
+	recentItemsWidget,
 ];
 
 export interface LayoutItem {
