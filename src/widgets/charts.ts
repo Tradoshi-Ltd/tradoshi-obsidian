@@ -19,12 +19,24 @@ export interface LinePoint {
  */
 export function lineChart(
 	card: HTMLElement,
-	ctx: WidgetContext,
+	ctx: Pick<WidgetContext, "tip" | "hideTip">,
 	points: LinePoint[],
-	opts: { label: string; currency: string; height?: number; tone?: "accent" | "loss"; formatAxis?: (v: number) => string; firstLast?: (ms: number) => string },
+	opts: {
+		label: string;
+		currency: string;
+		height?: number;
+		tone?: "accent" | "loss";
+		formatAxis?: (v: number) => string;
+		firstLast?: (ms: number) => string;
+		/** Horizontal reference lines (initial balance, target, limit), drawn dashed with their label. */
+		refs?: { value: number; label: string; tone?: "gain" | "loss" | "muted" }[];
+		/** Value the area is shaded down to; 0 by default. */
+		base?: number;
+	},
 ): void {
 	const W = 800, H = opts.height ?? 450, pl = 70, pr = 12, pt = 12, pb = 26;
-	const values = [0, ...points.map((p) => p.value)];
+	const base = opts.base ?? 0;
+	const values = [base, ...points.map((p) => p.value), ...(opts.refs ?? []).map((r) => r.value)];
 	const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
 	const x = (i: number): number => pl + (i / Math.max(points.length - 1, 1)) * (W - pl - pr);
 	const y = (v: number): number => pt + (1 - (v - min) / span) * (H - pt - pb);
@@ -35,10 +47,14 @@ export function lineChart(
 		svg.createSvg("line", { cls: "tradoshi-grid", attr: { x1: pl, x2: W - pr, y1: y(v), y2: y(v) } });
 		svg.createSvg("text", { cls: "tradoshi-axis", attr: { x: pl - 8, y: y(v) + 4, "text-anchor": "end" } }).textContent = axis(v);
 	}
-	svg.createSvg("line", { cls: "tradoshi-zero", attr: { x1: pl, x2: W - pr, y1: y(0), y2: y(0) } });
+	svg.createSvg("line", { cls: "tradoshi-zero", attr: { x1: pl, x2: W - pr, y1: y(base), y2: y(base) } });
+	for (const r of opts.refs ?? []) {
+		svg.createSvg("line", { cls: ["tradoshi-ref", `is-${r.tone ?? "muted"}`], attr: { x1: pl, x2: W - pr, y1: y(r.value), y2: y(r.value) } });
+		svg.createSvg("text", { cls: ["tradoshi-ref-label", `is-${r.tone ?? "muted"}`], attr: { x: W - pr - 4, y: y(r.value) - 6, "text-anchor": "end" } }).textContent = r.label;
+	}
 	if (!points.length) return;
 	const line = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join("");
-	svg.createSvg("path", { cls: "tradoshi-area", attr: { d: `${line}L${x(points.length - 1)},${y(0)}L${x(0)},${y(0)}Z` } });
+	svg.createSvg("path", { cls: "tradoshi-area", attr: { d: `${line}L${x(points.length - 1)},${y(base)}L${x(0)},${y(base)}Z` } });
 	svg.createSvg("path", { cls: "tradoshi-line", attr: { d: line } });
 	if (opts.firstLast) {
 		svg.createSvg("text", { cls: "tradoshi-axis", attr: { x: pl, y: H - 6 } }).textContent = opts.firstLast(points[0].at);
@@ -74,7 +90,7 @@ export interface Column {
 }
 
 /** Vertical columns around a zero line, gains up and losses down (weekdays, hours, days). */
-export function columns(card: HTMLElement, ctx: WidgetContext, cols: Column[], opts: { label: string; dense?: boolean }): void {
+export function columns(card: HTMLElement, ctx: Pick<WidgetContext, "tip" | "hideTip">, cols: Column[], opts: { label: string; dense?: boolean }): void {
 	const max = Math.max(...cols.map((c) => Math.abs(c.value)), 1);
 	const chart = card.createDiv({ cls: `tradoshi-columns${opts.dense ? " is-dense" : ""}`, attr: { role: "img", "aria-label": opts.label } });
 	chart.setCssProps({ "--n": String(cols.length) });

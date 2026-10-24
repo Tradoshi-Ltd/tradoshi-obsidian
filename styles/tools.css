@@ -1,0 +1,13 @@
+/* Quick links, trades to review, position size, pinned note */
+.tradoshi-quick-card { padding: var(--size-2-3) var(--size-4-3); }
+.tradoshi-quick-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3); }
+.tradoshi-quick-link { display: inline-flex; align-items: center; gap: var(--size-2-2); }
+.tradoshi-quick-icon { display: inline-flex; color: var(--text-muted); }
+.tradoshi-quick-icon svg { width: 16px; height: 16px; }
+.tradoshi-review-list { display: grid; gap: var(--size-2-1); margin-bottom: var(--size-4-2); }
+.tradoshi-review-row { display: flex; justify-content: space-between; gap: var(--size-4-2); width: 100%; background: var(--background-primary); box-shadow: none; border: 1px solid var(--background-modifier-border); }
+.tradoshi-ps .setting-item { padding: var(--size-2-2) 0; }
+.tradoshi-ps-result { margin-top: var(--size-2-3); padding: var(--size-2-3) var(--size-4-2); border-radius: var(--radius-m); background: var(--background-primary); border: 1px solid var(--background-modifier-border); }
+.tradoshi-ps-size { font-size: 1.3em; font-weight: var(--font-bold); }
+.tradoshi-pinned { max-height: 420px; overflow: auto; font-size: var(--font-ui-small); }
+.tradoshi-pinned > a { display: block; margin-bottom: var(--size-2-2); cursor: pointer; }

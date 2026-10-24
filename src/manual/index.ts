@@ -32,4 +32,5 @@ export const manualModule: PluginModule = {
 			},
 		});
 	},
+	places: (plugin) => [{ id: "add-trade", label: () => mt("titleAdd"), icon: "plus-circle", open: () => openManualTrade(plugin) }],
 };

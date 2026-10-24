@@ -30,6 +30,15 @@ export function compact(v: number, currency: string): string {
 	}
 }
 
+/** A short amount without sign, for a balance: "230,8 k €". */
+export function compactAmount(v: number, currency: string): string {
+	try {
+		return new Intl.NumberFormat(locale(), { style: "currency", currency, notation: "compact", maximumFractionDigits: 1 }).format(v);
+	} catch {
+		return amount(v, currency);
+	}
+}
+
 /** A short signed amount without currency, for calendar cells: "+1,5 k". */
 export function compactNumber(v: number): string {
 	return new Intl.NumberFormat(locale(), { notation: "compact", maximumFractionDigits: Math.abs(v) >= 1000 ? 1 : 0, signDisplay: "exceptZero" }).format(v);

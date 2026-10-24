@@ -1,0 +1,22 @@
+/* Accounts view, AUM and profit target widgets */
+.tradoshi-accounts h2 { margin: 0; }
+.tradoshi-accounts .tradoshi-head { align-items: center; }
+.tradoshi-account-title { flex: 1; min-width: 0; }
+.tradoshi-aum { margin-bottom: var(--size-4-3); }
+.tradoshi-aum-total { font-size: 1.6em; font-weight: var(--font-bold); margin: var(--size-2-2) 0 var(--size-4-2); }
+.tradoshi-aum-change { font-size: 0.6em; font-weight: var(--font-semibold); }
+.tradoshi-aum-row { display: flex; justify-content: space-between; gap: var(--size-4-2); padding: var(--size-2-1) 0; }
+.tradoshi-account-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--size-4-3); margin-bottom: var(--size-4-3); }
+.tradoshi-account-card { cursor: pointer; display: grid; gap: var(--size-2-3); }
+.tradoshi-account-card:hover, .tradoshi-account-card:focus-visible { border-color: var(--interactive-accent); }
+.tradoshi-account-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--size-2-3); }
+.tradoshi-account-value { font-size: 1.35em; }
+.tradoshi-account-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--size-2-2); }
+.tradoshi-spark { width: 100%; height: 48px; display: block; }
+.tradoshi-spark polyline { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.tradoshi-spark.is-gain polyline { stroke: var(--tradoshi-gain); }
+.tradoshi-spark.is-loss polyline { stroke: var(--tradoshi-loss); }
+.tradoshi-target { display: grid; gap: var(--size-2-1); margin: var(--size-2-2) 0 var(--size-4-2); }
+.tradoshi-target-track { height: 8px; border-radius: 4px; background: var(--background-modifier-border); overflow: hidden; }
+.tradoshi-target-fill { height: 100%; width: var(--w); background: var(--interactive-accent); border-radius: 4px; }
+.tradoshi-target-fill.is-done { background: var(--tradoshi-gain); }

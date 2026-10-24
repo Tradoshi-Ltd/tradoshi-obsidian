@@ -1,4 +1,4 @@
-import type { App } from "obsidian";
+import type { App, Component } from "obsidian";
 import type { DashData } from "../journal-data";
 import type TradoshiPlugin from "../main";
 import type { DashTrade } from "../stats";
@@ -12,6 +12,8 @@ export type WidgetSize = "full" | "wide" | "narrow" | "half" | "third";
 export interface WidgetContext {
 	app: App;
 	plugin: TradoshiPlugin;
+	/** The dashboard view: the owner of what a widget renders with Obsidian (Markdown, children). */
+	component: Component;
 	data: DashData;
 	/** Trades of the selected account and filters, all time, oldest first. */
 	all: DashTrade[];

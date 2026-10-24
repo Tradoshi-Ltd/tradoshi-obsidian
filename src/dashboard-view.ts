@@ -108,6 +108,7 @@ export class DashboardView extends ItemView {
 		const ctx: WidgetContext = {
 			app: this.app,
 			plugin: this.plugin,
+			component: this,
 			data,
 			all,
 			trades,

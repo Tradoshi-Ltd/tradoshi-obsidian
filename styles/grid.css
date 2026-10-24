@@ -36,3 +36,9 @@
 .tradoshi-link-button { background: none; box-shadow: none; color: var(--text-accent); padding: 0 var(--size-2-2); }
 .tradoshi-filter-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: var(--font-semibold); margin: var(--size-4-3) 0 var(--size-2-2); }
 .tradoshi-filter-chips { display: flex; flex-wrap: wrap; gap: var(--size-2-2); }
+
+/* Reference lines of a chart: initial balance, target, limits */
+.tradoshi-chart .tradoshi-ref { stroke-dasharray: 6 5; stroke-width: 1.5; stroke: var(--text-faint); }
+.tradoshi-chart .tradoshi-ref.is-gain { stroke: var(--tradoshi-gain); }
+.tradoshi-chart .tradoshi-ref.is-loss { stroke: var(--tradoshi-loss); }
+.tradoshi-chart .tradoshi-ref-label { font-size: 12px; fill: var(--text-muted); }

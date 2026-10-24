@@ -322,7 +322,7 @@ export default class TradoshiPlugin extends Plugin {
 		return null;
 	}
 
-	private async openOverview(): Promise<void> {
+	async openOverview(): Promise<void> {
 		const file = this.overviewFile();
 		if (!file) {
 			new Notice(`Tradoshi: ${t("nNoOverview")}`);

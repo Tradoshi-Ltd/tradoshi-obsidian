@@ -1,10 +1,12 @@
+import { aumWidget, targetsWidget } from "../accounts/widgets";
 import { CORE_WIDGETS } from "./core";
+import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, unreviewedWidget } from "./tools";
 import type { Widget } from "./types";
 
 // Every widget the dashboard can show, in the default order. A new widget is added to
 // this list, in its own file; the trader's own order and choices live in the settings
 // (`layout`), and a widget missing from them is added at its default place.
-export const WIDGETS: Widget[] = [...CORE_WIDGETS];
+export const WIDGETS: Widget[] = [quickLinksWidget, ...CORE_WIDGETS, unreviewedWidget, aumWidget, targetsWidget, positionSizeWidget, pinnedNoteWidget];
 
 export interface LayoutItem {
 	id: string;
