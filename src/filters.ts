@@ -69,3 +69,12 @@ export function periodStart(period: number, now: number): number | null {
 	}
 	return null;
 }
+
+/** The period just before the selected one, of the same kind: null for all time. */
+export function previousPeriod(period: number, now: number): { from: number; to: number } | null {
+	if (period > 0) return { from: now - 2 * period * 86400000, to: now - period * 86400000 };
+	const d = new Date(now);
+	if (period === -2) return { from: new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime(), to: new Date(d.getFullYear(), d.getMonth(), 1).getTime() };
+	if (period === -1) return { from: new Date(d.getFullYear() - 1, 0, 1).getTime(), to: new Date(d.getFullYear(), 0, 1).getTime() };
+	return null;
+}

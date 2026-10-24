@@ -1,5 +1,6 @@
 import { emotionLabel, locale, t, tradesLabel } from "../i18n";
 import { compactNumber, dateLabel, money, noonOf, num, sign } from "../format";
+import { previousPeriod } from "../filters";
 import { byCategory, byEmotion, byWeekday, dayTotals, equity, kpis, mainCurrency, planSplit, type Group } from "../stats";
 import { columns, groupBars, lineChart, tiles } from "./charts";
 import { cardTitle, emptyCard, type Widget } from "./types";
@@ -17,9 +18,14 @@ export const kpisWidget: Widget = {
 	render(card, ctx) {
 		card.addClass("is-bare");
 		const k = kpis(ctx.trades, ctx.currency);
+		// The same figures for the period just before, to compare with.
+		const prevRange = previousPeriod(ctx.period, ctx.now);
+		const prevTrades = prevRange ? ctx.all.filter((x) => x.at > prevRange.from && x.at <= prevRange.to) : [];
+		const p = prevTrades.length ? kpis(prevTrades, ctx.currency) : null;
+		const before = (text: string): string => (p ? t("previousPeriod", { v: text }) : " ");
 		tiles(card, [
-			{ label: t("net"), value: money(k.net, k.currency), tone: sign(k.net) },
-			{ label: t("winRate"), value: k.winRate === null ? "–" : `${num(k.winRate, 1)} %` },
+			{ label: t("net"), value: money(k.net, k.currency), sub: before(p ? money(p.net, k.currency) : ""), tone: sign(k.net) },
+			{ label: t("winRate"), value: k.winRate === null ? "–" : `${num(k.winRate, 1)} %`, sub: before(p?.winRate == null ? "–" : `${num(p.winRate, 1)} %`) },
 			{ label: t("profitFactor"), value: k.profitFactor === null ? "–" : num(k.profitFactor), sub: t("winsOverLosses") },
 			{ label: t("expectancy"), value: k.expectancy === null ? "–" : money(k.expectancy, k.currency), sub: t("perTrade"), tone: sign(k.expectancy ?? 0) },
 			{
@@ -28,7 +34,7 @@ export const kpisWidget: Widget = {
 				sub: k.avgR === null ? " " : t("rCoverage", { n: k.rCoverage, total: k.trades }),
 				tone: sign(k.avgR ?? 0),
 			},
-			{ label: t("trades"), value: String(k.trades) },
+			{ label: t("trades"), value: String(k.trades), sub: before(p ? String(p.trades) : "") },
 			{ label: t("maxDrawdown"), value: k.maxDrawdown ? money(-k.maxDrawdown, k.currency) : "–", sub: t("fromPeak"), tone: k.maxDrawdown ? "neg" : "" },
 			{
 				label: t("bestDay"),
