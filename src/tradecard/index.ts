@@ -1,10 +1,41 @@
-import { Notice, TFile } from "obsidian";
+import { Modal, Notice, Setting, TFile, type App } from "obsidian";
+import type TradoshiPlugin from "../main";
 import type { PluginModule } from "../modules";
-import { neighbours, TradeCard } from "./card";
+import { CARD_SECTIONS, neighbours, TradeCard, type CardSection } from "./card";
 import { tc } from "./text";
 
 /** The language of the code block that shows the card in a trade note. */
 export const TRADE_CARD_BLOCK = "tradoshi-trade";
+
+/** Which sections the trade card shows. */
+class SectionsModal extends Modal {
+	constructor(
+		app: App,
+		private readonly plugin: TradoshiPlugin,
+	) {
+		super(app);
+	}
+
+	onOpen(): void {
+		this.setTitle(tc("sectionsTitle"));
+		const hidden = new Set(this.plugin.moduleData<string[]>("tradecard-hidden", []));
+		const names: Record<CardSection, string> = { metrics: tc("secMetrics"), ladder: tc("secLadder"), tradoshi: tc("fromTradoshi"), review: tc("myReview"), media: tc("media"), nav: tc("secNav") };
+		for (const s of CARD_SECTIONS) {
+			new Setting(this.contentEl).setName(names[s]).addToggle((tg) =>
+				tg.setValue(!hidden.has(s)).onChange((v) => {
+					if (v) hidden.delete(s);
+					else hidden.add(s);
+					void this.plugin.saveModuleData("tradecard-hidden", [...hidden]);
+				}),
+			);
+		}
+		this.contentEl.createEl("p", { cls: "setting-item-description", text: tc("sectionsHint") });
+	}
+
+	onClose(): void {
+		this.contentEl.empty();
+	}
+}
 
 export const tradeCardModule: PluginModule = {
 	id: "tradecard",
@@ -49,4 +80,11 @@ export const tradeCardModule: PluginModule = {
 		plugin.addCommand({ id: "open-next-trade", name: tc("cmdNext"), checkCallback: open("next") });
 		plugin.addCommand({ id: "open-previous-trade", name: tc("cmdPrevious"), checkCallback: open("prev") });
 	},
+	settings: (plugin) => [
+		{
+			type: "group",
+			heading: tc("cardTitle"),
+			items: [{ name: tc("sectionsTitle"), desc: tc("sectionsDesc"), action: () => new SectionsModal(plugin.app, plugin).open() }],
+		},
+	],
 };

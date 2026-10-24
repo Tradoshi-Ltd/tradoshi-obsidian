@@ -68,3 +68,5 @@
 @container (max-width: 420px) {
 	.tradoshi-tc-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.tradoshi-tc-cols.is-single { grid-template-columns: minmax(0, 1fr); }

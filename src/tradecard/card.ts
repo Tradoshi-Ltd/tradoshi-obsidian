@@ -14,6 +14,10 @@ import { tc } from "./text";
 // review. It reads the note's properties, so it follows every sync; the review goes to
 // `review_*` properties, which the sync never touches.
 
+/** Sections of the card the trader can hide (the head always shows). */
+export const CARD_SECTIONS = ["metrics", "ladder", "tradoshi", "review", "media", "nav"] as const;
+export type CardSection = (typeof CARD_SECTIONS)[number];
+
 const IMAGE = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif"]);
 const VIDEO = new Set(["mp4", "webm", "mov", "m4v"]);
 
@@ -122,14 +126,18 @@ export class TradeCard extends MarkdownRenderChild {
 			root.createEl("p", { cls: "tradoshi-empty", text: tc("notATrade") });
 			return;
 		}
+		const hidden = new Set(this.plugin.moduleData<string[]>("tradecard-hidden", []));
+		const on = (s: CardSection): boolean => !hidden.has(s);
 		this.drawHead(root, fm);
-		this.drawMetrics(root, fm);
-		this.drawLadder(root, fm);
-		const cols = root.createDiv({ cls: "tradoshi-tc-cols" });
-		this.drawTradoshi(cols.createDiv({ cls: "tradoshi-tc-section" }), fm);
-		this.drawReview(cols.createDiv({ cls: "tradoshi-tc-section" }), file, fm);
-		this.drawMedia(root, file);
-		this.drawNav(root, file, fm);
+		if (on("metrics")) this.drawMetrics(root, fm);
+		if (on("ladder")) this.drawLadder(root, fm);
+		if (on("tradoshi") || on("review")) {
+			const cols = root.createDiv({ cls: `tradoshi-tc-cols${on("tradoshi") && on("review") ? "" : " is-single"}` });
+			if (on("tradoshi")) this.drawTradoshi(cols.createDiv({ cls: "tradoshi-tc-section" }), fm);
+			if (on("review")) this.drawReview(cols.createDiv({ cls: "tradoshi-tc-section" }), file, fm);
+		}
+		if (on("media")) this.drawMedia(root, file);
+		if (on("nav")) this.drawNav(root, file, fm);
 	}
 
 	private drawHead(root: HTMLElement, fm: FrontMatterCache): void {
