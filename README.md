@@ -59,7 +59,7 @@ Commands: **Open the dashboard**, **Sync journal now**, **Import a statement**, 
 
 ## When do new trades show up?
 
-Trades synced from your brokers reach the vault once your Tradoshi journal is up to date. If a trade is missing, open Tradoshi, then sync again. The overview note shows when each account was last updated.
+With automatic sync, Tradoshi syncs MetaTrader 4 and 5 accounts every night, and the plugin picks up those trades at its next sync, without opening Tradoshi. Other brokers and platforms sync when Tradoshi is open: if a trade is missing, open Tradoshi, then sync again. The overview note shows when each account was last updated.
 
 ## Disclosures
 
