@@ -330,6 +330,13 @@ export default class TradoshiPlugin extends Plugin {
 		return { ...this.moduleData<Record<string, string>>("manual-tags", {}), ...this.settings.tagCategories };
 	}
 
+	/** Trade notes in the vault: synced, imported or entered by hand. */
+	tradeNoteCount(): number {
+		let n = 0;
+		for (const key of this.keyByPath.values()) if (key.startsWith("trade:")) n++;
+		return n;
+	}
+
 	isConnected(): boolean {
 		return this.getToken() !== null;
 	}

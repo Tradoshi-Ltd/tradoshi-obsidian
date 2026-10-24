@@ -7,6 +7,7 @@ import { loadDashData, type DashData } from "./journal-data";
 import { openManualTrade } from "./manual";
 import { mt } from "./manual/text";
 import { LOGO_DATA_URI } from "./logo";
+import { FREE_IMPORT_LIMIT } from "./import-modal";
 import { lockPanel, showable } from "./offer";
 import { guideLink } from "./render";
 import { mainCurrency } from "./stats";
@@ -100,6 +101,7 @@ export class DashboardView extends ItemView {
 
 		this.drawHeader(root);
 		if (data.sample) this.drawSample(root);
+		else if (!this.plugin.isConnected()) this.drawNoAccount(root);
 		else if (!data.trades.length) {
 			this.drawEmpty(root);
 			return;
@@ -214,6 +216,17 @@ export class DashboardView extends ItemView {
 		bar.createEl("button", { cls: "tradoshi-link-button", text: t("clearFilters") }).addEventListener("click", () => {
 			void this.setFilters({ ...f, symbols: [], setups: [], tags: [], excludeTags: [], side: "all", outcome: "all" });
 		});
+	}
+
+	/** A journal imported without an account: what a free account adds. */
+	private drawNoAccount(root: HTMLElement): void {
+		const box = root.createDiv({ cls: "tradoshi-no-account" });
+		const text = box.createDiv();
+		text.createEl("strong", { text: t("noAccountTitle", { n: this.plugin.tradeNoteCount(), max: FREE_IMPORT_LIMIT }) });
+		text.createEl("p", { text: t("noAccountText") });
+		const buttons = box.createDiv({ cls: "tradoshi-sample-buttons" });
+		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => this.plugin.connect("dashboard_no_account"));
+		if (this.plugin.pairingPending()) text.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 	}
 
 	private drawSample(root: HTMLElement): void {

@@ -22,6 +22,9 @@ const FIELD_LABELS: Record<CsvField, () => string> = {
 	id: () => t("fieldId"),
 };
 
+/** Without a Tradoshi account, a vault holds this many trades; a free account lifts the limit. */
+export const FREE_IMPORT_LIMIT = 20;
+
 /** Imports a broker statement read on this computer. Nothing leaves the vault. */
 export class ImportModal extends Modal {
 	private parsed: (ParsedFile & { rows?: string[][]; header?: number; mapping?: Partial<Record<CsvField, number>> }) | null = null;
@@ -45,14 +48,15 @@ export class ImportModal extends Modal {
 		contentEl.createEl("p", { cls: "tradoshi-import-privacy", text: t("importPrivacy") });
 
 		if (!this.plugin.isConnected()) {
-			contentEl.createEl("p", { text: t("importNeedsAccount") });
+			const left = this.room();
+			contentEl.createEl("p", { cls: "tradoshi-import-limit", text: left > 0 ? t("importFreeLimit", { n: FREE_IMPORT_LIMIT }) : t("importFreeFull", { n: FREE_IMPORT_LIMIT }) });
 			new Setting(contentEl).addButton((b) =>
 				b
 					.setButtonText(t("connect"))
 					.setCta()
-					.onClick(() => this.plugin.connect("import")),
+					.onClick(() => this.plugin.connect("import_limit")),
 			);
-			return;
+			if (left <= 0) return;
 		}
 
 		const input = contentEl.createEl("input", { attr: { type: "file", accept: ".htm,.html,.csv,.txt,.xlsx" } });
@@ -66,6 +70,11 @@ export class ImportModal extends Modal {
 
 	onClose(): void {
 		this.contentEl.empty();
+	}
+
+	/** Trades this vault can still take without an account; no limit with one. */
+	private room(): number {
+		return this.plugin.isConnected() ? Infinity : Math.max(0, FREE_IMPORT_LIMIT - this.plugin.tradeNoteCount());
 	}
 
 	private async read(file: File): Promise<void> {
@@ -150,15 +159,20 @@ export class ImportModal extends Modal {
 			}
 		}
 
+		// Without an account: the most recent trades, up to what the vault can still take.
+		const room = this.room();
+		const kept = room >= this.trades.length ? this.trades : [...this.trades].sort((a, b) => (b.closeTime ?? "").localeCompare(a.closeTime ?? "")).slice(0, room);
+		if (kept.length < this.trades.length) el.createEl("p", { cls: "tradoshi-import-limit", text: t("importFreeCut", { n: kept.length, total: this.trades.length }) });
+
 		new Setting(el).addButton((b) =>
 			b
-				.setButtonText(t("importDo", { n: this.trades.length }))
+				.setButtonText(t("importDo", { n: kept.length }))
 				.setCta()
-				.setDisabled(!this.trades.length)
+				.setDisabled(!kept.length)
 				.onClick(() => {
 					b.setDisabled(true);
 					void this.plugin
-						.importTrades({ name: this.accountName || "Imported account", broker: p.account.broker, currency: this.currency }, this.trades)
+						.importTrades({ name: this.accountName || "Imported account", broker: p.account.broker, currency: this.currency }, kept)
 						.then((n) => {
 							new Notice(`Tradoshi: ${t("importDone", { n })}`);
 							this.close();

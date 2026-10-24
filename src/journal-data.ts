@@ -126,8 +126,10 @@ export function sampleTrades(now: number = Date.now()): DashTrade[] {
 }
 
 export function loadDashData(app: App, connected: boolean, categories: Record<string, string>): DashData {
-	const trades = connected ? tradesFromVault(app) : [];
-	if (!connected) {
+	// Without an account, the trades imported in the vault (20 at most) or, if there are
+	// none, the sample journal.
+	const trades = tradesFromVault(app);
+	if (!connected && !trades.length) {
 		const categories = Object.fromEntries(Object.entries(SAMPLE_TAG_CATEGORIES).map(([tag, cat]) => [sampleTag(tag), cat]));
 		return { sample: true, trades: sampleTrades(), accounts: SAMPLE_ACCOUNTS.map((a) => a.name), categories };
 	}

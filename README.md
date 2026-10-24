@@ -60,7 +60,7 @@ Your trades come from your [Tradoshi](https://tradoshi.com) journal, synced auto
 - **Your time zone, your trading day.** Dates use the time zone of the journal, set once from your computer. A trading day can start at the hour you choose, for example 23:00 to follow the forex week.
 - **A navigation sidebar** with every view and a search through your trades and days by symbol, account, tag, emotion or date.
 
-Before you connect an account, the dashboard, the accounts and the prop firm view show a sample journal.
+Before you connect an account or import a statement, the dashboard, the accounts and the prop firm view show a sample journal.
 
 ## What each plan opens
 
@@ -68,6 +68,7 @@ The plugin follows the [Tradoshi pricing page](https://tradoshi.com/en/pricing).
 
 | Plan | In Obsidian |
 |------|-------------|
+| **No account** | Up to 20 trades imported from a statement, with the free features below |
 | **Free** | The dashboard and its analytics, the calendar, the trade card and your review of each trade, the trade log and its gallery, trades by hand (executed and missed), statement and Excel imports, the figures of day reports and of weekly to yearly reviews, setups and playbooks, accounts, the position size calculator, quick links, privacy mode, navigation |
 | **Essential** | Sync with Tradoshi: your trades arrive on their own, from your brokers and from the app. The written check-in and the questions of your day and period reviews, the discipline card, your goals and review streaks |
 | **Pro** | Prop firm challenge tracking, backtest trades |
@@ -123,7 +124,7 @@ An automatic sync asks Tradoshi only for what changed and writes only those acco
 
 ## Disclosures
 
-- **Account required.** The plugin needs a free Tradoshi account and an access token created in Tradoshi, also to import a file or to enter a trade by hand. Those trades are still kept on your computer only: the account identifies you, it does not receive them.
+- **Account.** Without an account, you can import a statement of up to 20 trades, kept on your computer. Beyond that, and to enter trades by hand, the plugin needs a free Tradoshi account connected to the vault. Imported trades still stay on your computer only: the account identifies you, it does not receive them.
 - **Payment.** The plugin is free to install, and a Tradoshi account is free. Some features need a paid Tradoshi plan, as on the pricing page: sync with Tradoshi, review questions, discipline and goals (Essential), prop firm challenges and backtest trades (Pro), session mode (Premium). See [What each plan opens](#what-each-plan-opens). Every new account starts with a free trial, without a card.
 - **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal and the plan of your account. It sends your access token and the plugin version. While you connect a vault, it also asks Tradoshi every few seconds whether you approved it; the access token then arrives encrypted with a key that never leaves the vault. Nothing from your vault is ever sent.
 - **Read only.** The access token can only read your journal. It cannot change your journal, place trades, reach your broker credentials or your billing. You can revoke it at any time in Tradoshi.

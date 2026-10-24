@@ -81,10 +81,10 @@ export function allows(plugin: TradoshiPlugin, need: OfferCode): boolean {
 
 /**
  * True when the feature can be shown: the account has the plan, or no account is
- * connected and the sample journal stands in (nothing is written then).
+ * connected and the sample journal stands in (no trade in the vault, nothing written).
  */
 export function showable(plugin: TradoshiPlugin, need: OfferCode): boolean {
-	return !plugin.isConnected() || allows(plugin, need);
+	return allows(plugin, need) || (!plugin.isConnected() && plugin.tradeNoteCount() === 0);
 }
 
 export function planName(need: PaidOffer): string {
