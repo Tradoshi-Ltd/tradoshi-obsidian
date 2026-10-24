@@ -1,6 +1,7 @@
 import { aumWidget, targetsWidget } from "../accounts/widgets";
 import { ANALYTICS_WIDGETS } from "./analytics";
 import { PROPFIRM_WIDGETS } from "../propfirm/widgets";
+import { missedWidget } from "../tradelog/missed-widget";
 import { CORE_WIDGETS } from "./core";
 import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, unreviewedWidget } from "./tools";
 import type { Widget } from "./types";
@@ -17,6 +18,7 @@ export const WIDGETS: Widget[] = [
 	aumWidget,
 	targetsWidget,
 	positionSizeWidget,
+	missedWidget,
 	pinnedNoteWidget,
 ];
 

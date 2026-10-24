@@ -34,6 +34,8 @@ export interface LogTrade {
 	reviewed: boolean;
 	kind: TradeKind;
 	thesis: string | null;
+	/** Why a missed trade was not taken. */
+	missedReason: string | null;
 	/** Images and videos embedded in the note. */
 	media: number;
 	/** True when the trade lives in the vault only (hand entry, imported file). */
@@ -82,6 +84,7 @@ export function tradeOf(app: App, file: TFile): LogTrade | null {
 		reviewed: fm.review_done === true,
 		kind: fm.trade_type === "missed" ? "missed" : fm.trade_type === "backtest" ? "backtest" : "executed",
 		thesis: str(fm.review_thesis),
+		missedReason: str(fm.missed_reason),
 		media: (cache?.embeds ?? []).filter((e) => MEDIA.test(e.link.split("#")[0].split("?")[0])).length,
 		local: key.startsWith("file-"),
 	};
