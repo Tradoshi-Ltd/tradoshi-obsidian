@@ -6,20 +6,23 @@ import {
 	dayFrontmatter,
 	dayPath,
 	frontmatterDiffers,
-	groupByDay,
 	newNote,
 	overviewBlock,
 	overviewPath,
+	recordFromProperties,
+	recordOf,
 	replaceBlock,
 	tradeBlock,
 	tradeFrontmatter,
 	tradeKey,
 	tradePath,
 	type Frontmatter,
+	type NoteRecord,
+	type OverviewAccount,
 	type RenderContext,
 } from "./render";
 import { APP_URL, type TradoshiSettings } from "./settings";
-import type { JournalResponse, TradeWithAccount } from "./types";
+import type { ApiAccount, ApiDayNote, ApiTrade, JournalResponse } from "./types";
 
 const PERSONAL_HEADING = "## My notes";
 
@@ -119,32 +122,57 @@ class NoteWriter {
 
 const stripMd = (path: string): string => path.replace(/\.md$/, "");
 
-export async function writeJournal(app: App, data: JournalResponse, settings: TradoshiSettings): Promise<WriteStats> {
-	const ctx = renderContext(settings, data.appUrl || APP_URL);
-	const accounts = data.accounts.filter(
-		(a) => (settings.includeDemo || a.mode !== "demo") && (settings.includeArchived || !a.archived),
-	);
-	const items: TradeWithAccount[] = accounts.flatMap((account) => (account.trades ?? []).map((trade) => ({ trade, account })));
+interface Batch {
+	accounts: ApiAccount[];
+	/** Day notes written in Tradoshi, by date. */
+	dayNotes: ApiDayNote[];
+	generatedAt: string;
+}
+
+/**
+ * Writes the trade notes of a batch (a sync or an imported file), then rebuilds the
+ * day notes and the overview from every trade of the vault, so trades from Tradoshi
+ * and trades from a file share their days without overwriting each other.
+ */
+async function writeBatch(app: App, settings: TradoshiSettings, ctx: RenderContext, batch: Batch): Promise<WriteStats> {
 	const deleted = new Set(settings.deletedKeys);
 	const index = indexVault(app);
 	const vault = new PlannedVault(index.byKey, index.byPath, (path) => !!app.vault.getAbstractFileByPath(path));
+	const writer = new NoteWriter(app);
 
-	// 1. Decide where every note goes, before writing anything, so links point to
-	//    the notes as they really are in the vault.
-	const tradeActions = new Map<string, NoteAction>();
-	if (settings.tradeNotes) {
-		for (const { trade, account } of items) {
+	// 1. Trade notes of the batch.
+	const batchRecords = new Map<string, NoteRecord>();
+	const tradeWrites: { action: NoteAction; trade: ApiTrade; account: ApiAccount }[] = [];
+	for (const account of batch.accounts) {
+		for (const trade of account.trades ?? []) {
 			const id = tradeKey(account, trade);
-			tradeActions.set(id, vault.plan(tradeNoteKey(id), tradePath(ctx, trade), deleted));
+			const action: NoteAction = settings.tradeNotes ? vault.plan(tradeNoteKey(id), tradePath(ctx, trade), deleted) : { kind: "skip" };
+			const record = recordOf(ctx, trade, account, action.kind === "skip" ? null : stripMd(action.path));
+			if (record) batchRecords.set(id, record);
+			if (action.kind !== "skip") tradeWrites.push({ action, trade, account });
 		}
 	}
 
-	const days = groupByDay(ctx, items);
-	const notes = new Map(data.notes.map((n) => [n.date, n]));
+	// 2. Every trade of the vault, the batch taking precedence over what is on disk.
+	const records = new Map<string, NoteRecord>();
+	for (const [path, key] of index.byPath) {
+		if (!key.startsWith("trade:")) continue;
+		const file = app.vault.getFileByPath(path);
+		const fm = file ? app.metadataCache.getFileCache(file)?.frontmatter : undefined;
+		const record = fm ? recordFromProperties(path, fm) : null;
+		if (record && !records.has(record.key)) records.set(record.key, record);
+	}
+	for (const [key, record] of batchRecords) records.set(key, record);
+	const all = [...records.values()];
+
+	// 3. Day notes, planned before writing so links point to the notes as they are.
 	const from = historyFrom(settings.history);
+	const byDay = new Map<string, NoteRecord[]>();
+	for (const r of all) byDay.set(r.day, [...(byDay.get(r.day) ?? []), r]);
+	const notes = new Map(batch.dayNotes.map((n) => [n.date, n]));
 	const dayActions = new Map<string, NoteAction>();
 	if (settings.dailyNotes) {
-		const dates = new Set([...days.keys(), ...notes.keys()]);
+		const dates = new Set([...byDay.keys(), ...notes.keys()]);
 		// A day note already in the vault whose trades moved to another day (time zone
 		// or day start changed) is kept and told it has no trades left.
 		for (const key of index.byKey.keys()) if (key.startsWith("day:")) dates.add(key.slice(4));
@@ -153,28 +181,87 @@ export async function writeJournal(app: App, data: JournalResponse, settings: Tr
 		}
 	}
 	const overviewAction = vault.plan(OVERVIEW_KEY, overviewPath(ctx), new Set());
-
-	const target = (action: NoteAction | undefined): string | null => (action && action.kind !== "skip" ? stripMd(action.path) : null);
 	ctx.links = {
-		trade: (key) => target(tradeActions.get(key)),
-		day: (date) => target(dayActions.get(date)),
+		trade: (key) => batchRecords.get(key)?.path ?? records.get(key)?.path ?? null,
+		day: (date) => {
+			const a = dayActions.get(date);
+			return a && a.kind !== "skip" ? stripMd(a.path) : null;
+		},
 	};
 
-	// 2. Write.
-	const writer = new NoteWriter(app);
-	for (const { trade, account } of items) {
-		const action = tradeActions.get(tradeKey(account, trade));
-		if (action) await writer.write(action, tradeFrontmatter(ctx, trade, account), tradeBlock(ctx, trade, account), PERSONAL_HEADING);
+	// 4. Write.
+	for (const { action, trade, account } of tradeWrites) {
+		await writer.write(action, tradeFrontmatter(ctx, trade, account), tradeBlock(ctx, trade, account), PERSONAL_HEADING);
 	}
 	for (const [date, action] of dayActions) {
-		const dayItems = days.get(date) ?? [];
-		await writer.write(action, dayFrontmatter(date, dayItems), dayBlock(ctx, date, dayItems, notes.get(date)), PERSONAL_HEADING);
+		const dayRecords = byDay.get(date) ?? [];
+		await writer.write(action, dayFrontmatter(date, dayRecords), dayBlock(ctx, date, dayRecords, notes.get(date)), PERSONAL_HEADING);
 	}
-	await writer.write(
-		overviewAction,
-		{ tradoshi_overview: true, tags: ["tradoshi/overview"] },
-		overviewBlock(ctx, accounts, items, data.generatedAt),
-		null,
-	);
+	const known = new Set(batch.accounts.map((a) => a.name));
+	const fromFile = (id: string): boolean => id.startsWith("file-");
+	const overviewAccounts: OverviewAccount[] = batch.accounts.map((a) => ({
+		name: a.name,
+		broker: a.broker,
+		trades: a.tradeCount,
+		source: fromFile(a.id) ? "file" : "tradoshi",
+		updated: fromFile(a.id) ? null : a.updatedAt,
+		demo: a.mode === "demo",
+	}));
+	for (const r of all) {
+		if (known.has(r.account)) continue;
+		known.add(r.account);
+		overviewAccounts.push({
+			name: r.account,
+			broker: r.broker,
+			trades: all.filter((x) => x.account === r.account).length,
+			source: fromFile(r.key) ? "file" : "tradoshi",
+			updated: null,
+			demo: false,
+		});
+	}
+	await writer.write(overviewAction, { tradoshi_overview: true, tags: ["tradoshi/overview"] }, overviewBlock(ctx, overviewAccounts, all, batch.generatedAt), null);
 	return writer.stats;
+}
+
+/** Writes the journal read from Tradoshi. */
+export async function writeJournal(app: App, data: JournalResponse, settings: TradoshiSettings): Promise<WriteStats> {
+	const accounts = data.accounts.filter(
+		(a) => (settings.includeDemo || a.mode !== "demo") && (settings.includeArchived || !a.archived),
+	);
+	return writeBatch(app, settings, renderContext(settings, data.appUrl || APP_URL), { accounts, dayNotes: data.notes, generatedAt: data.generatedAt });
+}
+
+const slug = (s: string): string =>
+	s
+		.normalize("NFD")
+		.replace(/[̀-ͯ]/g, "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "") || "account";
+
+/**
+ * Writes the trades of a file imported on this computer. They live in the vault only:
+ * nothing is sent to Tradoshi. Importing the same file again updates the same notes.
+ */
+export async function writeImport(
+	app: App,
+	settings: TradoshiSettings,
+	account: { name: string; broker: string | null; currency: string },
+	trades: ApiTrade[],
+	dayNotes: ApiDayNote[],
+): Promise<WriteStats> {
+	const now = new Date().toISOString();
+	const imported: ApiAccount = {
+		id: `file-${slug(account.name)}`,
+		name: account.name,
+		broker: account.broker,
+		currency: account.currency,
+		mode: "live",
+		archived: false,
+		updatedAt: now,
+		tradeCount: trades.length,
+		changed: true,
+		trades,
+	};
+	return writeBatch(app, settings, renderContext(settings), { accounts: [imported], dayNotes, generatedAt: now });
 }

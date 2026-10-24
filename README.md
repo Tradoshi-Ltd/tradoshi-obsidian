@@ -16,6 +16,17 @@ The plugin reads your [Tradoshi](https://tradoshi.com) journal and writes it int
 
 Properties work with the core Bases plugin and with Dataview, so you can build your own views of your trading.
 
+## Two ways to bring your trades
+
+| | Automatic sync | Imported file |
+|---|---|---|
+| How | Your broker sends your trades to Tradoshi, which writes them in your vault | You import a MetaTrader 4 or 5 report (.html) or any CSV file in the plugin |
+| Where your trades are | A copy in Tradoshi (data stored in Europe), a full copy in your vault | In your vault only: the file is read on your computer and nothing is sent |
+| Brokers | Over 2,000 brokers and prop firms | Any broker or platform that exports a CSV |
+| Price | Paid Tradoshi plans, with a free trial | Free |
+
+In both cases, the notes you write never leave your computer. Importing the same file again updates the same notes instead of adding copies, and the column mapping of a CSV can be corrected before importing.
+
 ## Connect in one click
 
 1. Install the plugin and enable it.
@@ -42,7 +53,7 @@ Don't have an account yet? [Create a free Tradoshi account](https://app.tradoshi
 | Sync when the vault opens | On |
 | Sync automatically | Every hour |
 
-Commands: **Sync journal now**, **Open the overview note**, **Open the web app**, **Restore deleted notes**.
+Commands: **Open the dashboard**, **Sync journal now**, **Import a statement**, **Open the overview note**, **Open the web app**, **Restore deleted notes**.
 
 ## When do new trades show up?
 
@@ -50,7 +61,7 @@ Trades synced from your brokers reach the vault once your Tradoshi journal is up
 
 ## Disclosures
 
-- **Account required.** The plugin needs a Tradoshi account and an access token created in Tradoshi.
+- **Account required.** The plugin needs a free Tradoshi account and an access token created in Tradoshi, also to import a file. An imported file is still read on your computer only: the account identifies you, it does not receive your trades.
 - **Payment.** A Tradoshi account is free, with manual entry and file imports. Automatic sync from your brokers is part of the paid plans, with a free trial. The plugin itself is free and works with any plan.
 - **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal. It sends your access token and the plugin version. Nothing from your vault is ever sent.
 - **Read only.** The access token can only read your journal. It cannot change your journal, place trades, reach your broker credentials or your billing. You can revoke it at any time in Tradoshi.

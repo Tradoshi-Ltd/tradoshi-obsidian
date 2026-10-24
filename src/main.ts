@@ -2,10 +2,12 @@ import { Notice, Plugin, TFile, TFolder, addIcon, type ObsidianProtocolData, typ
 import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
+import { ImportModal } from "./import-modal";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
-import { historyFrom, indexVault, renderContext, writeJournal } from "./sync";
+import { historyFrom, indexVault, renderContext, writeImport, writeJournal } from "./sync";
+import type { ApiDayNote, ApiTrade } from "./types";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
 
@@ -47,6 +49,8 @@ export default class TradoshiPlugin extends Plugin {
 	/** Identity of every Tradoshi note, by path, kept up to date as the trader edits the vault. */
 	private keyByPath = new Map<string, string>();
 	private saveTimer: number | null = null;
+	/** Day notes written in Tradoshi, from the last sync, kept when an imported file rebuilds the days. */
+	private lastDayNotes: ApiDayNote[] = [];
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -75,6 +79,11 @@ export default class TradoshiPlugin extends Plugin {
 			id: "open-web-app",
 			name: "Open the web app",
 			callback: () => window.open(this.link("command")),
+		});
+		this.addCommand({
+			id: "import-statement",
+			name: "Import a statement",
+			callback: () => this.openImport(),
 		});
 		this.addCommand({
 			id: "restore-deleted-notes",
@@ -183,6 +192,23 @@ export default class TradoshiPlugin extends Plugin {
 		return APP_URL;
 	}
 
+	/** Sign-up link of the web app, counted as coming from Obsidian. */
+	signupLink(campaign: string): string {
+		return appLink(renderContext(this.settings), campaign, "params", "section=obsidian");
+	}
+
+	openImport(): void {
+		new ImportModal(this.app, this).open();
+	}
+
+	/** Writes the trades of a file read on this computer. Returns how many were imported. */
+	async importTrades(account: { name: string; broker: string | null; currency: string }, trades: ApiTrade[]): Promise<number> {
+		await writeImport(this.app, this.settings, account, trades, this.lastDayNotes);
+		window.setTimeout(() => this.refreshDashboards(), 1500);
+		await this.openDashboard();
+		return trades.length;
+	}
+
 	isConnected(): boolean {
 		return this.getToken() !== null;
 	}
@@ -289,6 +315,7 @@ export default class TradoshiPlugin extends Plugin {
 				if (delta.accounts.every((a) => !a.changed) && delta.notes.length === 0) return;
 			}
 			const data = await fetchJournal(token, { from, since: null, clientVersion });
+			this.lastDayNotes = data.notes;
 			const stats = await writeJournal(this.app, data, this.settings);
 			this.settings.tagCategories = Object.fromEntries(data.tags.map((tag) => [tag.name, tag.category ?? ""]));
 			this.settings.lastSync = data.generatedAt;

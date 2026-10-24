@@ -1,4 +1,4 @@
-import type { ApiAccount, ApiDayNote, ApiTrade, TradeWithAccount } from "./types";
+import type { ApiAccount, ApiDayNote, ApiTrade } from "./types";
 
 // Everything in this file is pure: it turns journal data into note paths, note
 // properties and Markdown. Nothing here touches the vault, so it can be tested
@@ -87,10 +87,6 @@ export function dateTime(ctx: RenderContext, iso: string | null): string | null 
 	return `${z.date}T${z.time}`;
 }
 
-function clock(ctx: RenderContext, iso: string | null): string {
-	const ms = toMs(iso);
-	return ms === null ? "" : zoned(ms, ctx.timeZone).time;
-}
 
 /**
  * The trading day an instant belongs to. A day that starts before noon (e.g. 6:00)
@@ -180,14 +176,6 @@ export function dayLink(ctx: RenderContext, date: string): string {
 	return target ? `[[${target}|${date}]]` : date;
 }
 
-/** Link to a trade note, written for a table cell (the pipe is escaped). */
-function tradeLinkInTable(ctx: RenderContext, t: ApiTrade, account: ApiAccount): string {
-	const label = `${t.symbol.replace(/[|[\]]/g, "")} ${t.side}`;
-	if (!ctx.tradeNotes) return label;
-	const target = ctx.links ? ctx.links.trade(tradeKey(account, t)) : withoutExtension(tradePath(ctx, t));
-	return target ? `[[${target}\\|${label}]]` : label;
-}
-
 export function appLink(ctx: Pick<RenderContext, "appUrl">, campaign: string, hash = "journal", extraQuery = ""): string {
 	const extra = extraQuery ? `&${extraQuery}` : "";
 	return `${ctx.appUrl}/?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}${extra}${hash ? `#${hash}` : ""}`;
@@ -261,6 +249,71 @@ export function tradeBlock(ctx: RenderContext, t: ApiTrade, account: ApiAccount)
 
 // ── Day notes ───────────────────────────────────────────────────────────────
 
+/**
+ * A trade as the day notes and the overview need it. Day notes are built from every
+ * trade of the vault, whether it came from Tradoshi or from an imported file, so two
+ * sources never overwrite each other's days.
+ */
+export interface NoteRecord {
+	key: string;
+	/** Path of the trade note (without ".md"), or null when the trade has no note. */
+	path: string | null;
+	account: string;
+	broker: string | null;
+	currency: string;
+	symbol: string;
+	side: string;
+	day: string;
+	/** Close in the journal time zone, "YYYY-MM-DDTHH:mm". */
+	closed: string | null;
+	volume: number | null;
+	pnl: number;
+	r: number | null;
+}
+
+export function recordOf(ctx: RenderContext, t: ApiTrade, account: ApiAccount, path: string | null): NoteRecord | null {
+	const day = tradeDay(ctx, t);
+	if (!day) return null;
+	return {
+		key: tradeKey(account, t),
+		path,
+		account: account.name,
+		broker: account.broker,
+		currency: account.currency,
+		symbol: t.symbol,
+		side: t.side,
+		day,
+		closed: dateTime(ctx, tradeInstant(t)),
+		volume: t.volume,
+		pnl: t.pnl,
+		r: t.rMultiple,
+	};
+}
+
+/** A trade note of the vault, read back from its properties. */
+export function recordFromProperties(path: string, fm: Record<string, unknown>): NoteRecord | null {
+	const str = (v: unknown): string | null => (typeof v === "string" && v ? v : null);
+	const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+	const key = str(fm.tradoshi_id);
+	const day = str(fm.trading_day);
+	const pnl = num(fm.pnl);
+	if (!key || !day || pnl === null) return null;
+	return {
+		key,
+		path: path.replace(/\.md$/, ""),
+		account: str(fm.account) ?? "Account",
+		broker: str(fm.broker),
+		currency: str(fm.currency) ?? "USD",
+		symbol: str(fm.symbol) ?? "",
+		side: str(fm.side) ?? "",
+		day,
+		closed: str(fm.closed) ?? str(fm.opened),
+		volume: num(fm.volume),
+		pnl,
+		r: num(fm.r_multiple),
+	};
+}
+
 export interface DaySummary {
 	trades: number;
 	wins: number;
@@ -268,12 +321,12 @@ export interface DaySummary {
 	pnlByCurrency: Record<string, number>;
 }
 
-export function summarize(items: TradeWithAccount[]): DaySummary {
-	const s: DaySummary = { trades: items.length, wins: 0, losses: 0, pnlByCurrency: {} };
-	for (const { trade, account } of items) {
-		if (trade.pnl > 0) s.wins++;
-		else if (trade.pnl < 0) s.losses++;
-		s.pnlByCurrency[account.currency] = round((s.pnlByCurrency[account.currency] ?? 0) + trade.pnl);
+export function summarize(records: NoteRecord[]): DaySummary {
+	const s: DaySummary = { trades: records.length, wins: 0, losses: 0, pnlByCurrency: {} };
+	for (const r of records) {
+		if (r.pnl > 0) s.wins++;
+		else if (r.pnl < 0) s.losses++;
+		s.pnlByCurrency[r.currency] = round((s.pnlByCurrency[r.currency] ?? 0) + r.pnl);
 	}
 	return s;
 }
@@ -288,8 +341,8 @@ function pnlText(s: DaySummary): string {
 	return parts.length ? parts.join(", ") : "0.00";
 }
 
-export function dayFrontmatter(date: string, items: TradeWithAccount[]): Frontmatter {
-	const s = summarize(items);
+export function dayFrontmatter(date: string, records: NoteRecord[]): Frontmatter {
+	const s = summarize(records);
 	const currencies = Object.keys(s.pnlByCurrency);
 	return {
 		tradoshi_day: date,
@@ -304,19 +357,19 @@ export function dayFrontmatter(date: string, items: TradeWithAccount[]): Frontma
 	};
 }
 
-export function dayBlock(ctx: RenderContext, date: string, items: TradeWithAccount[], note: ApiDayNote | undefined): string {
+export function dayBlock(ctx: RenderContext, date: string, records: NoteRecord[], note: ApiDayNote | undefined): string {
 	// No heading: Obsidian already shows the file name, which is the date.
 	const lines: string[] = [];
-	const sorted = [...items].sort((a, b) => (tradeInstant(a.trade) ?? "").localeCompare(tradeInstant(b.trade) ?? ""));
+	const sorted = [...records].sort((a, b) => (a.closed ?? "").localeCompare(b.closed ?? ""));
 	if (sorted.length) {
 		const s = summarize(sorted);
 		const rate = winRate(s);
 		lines.push(`**Net P&L:** ${pnlText(s)} · **Trades:** ${s.trades}${rate === null ? "" : ` · **Win rate:** ${rate} %`}`, "");
 		lines.push("| Time | Trade | Volume | P&L | R | Account |", "|---|---|---|---|---|---|");
-		for (const { trade, account } of sorted) {
-			lines.push(
-				`| ${clock(ctx, tradeInstant(trade))} | ${tradeLinkInTable(ctx, trade, account)} | ${cell(trade.volume)} | ${money(trade.pnl, account.currency)} | ${trade.rMultiple === null ? "-" : trade.rMultiple} | ${cell(account.name)} |`,
-			);
+		for (const r of sorted) {
+			const label = `${r.symbol.replace(/[|[\]]/g, "")} ${r.side}`;
+			const link = ctx.tradeNotes && r.path ? `[[${r.path}\\|${label}]]` : label;
+			lines.push(`| ${r.closed ? r.closed.slice(11, 16) : ""} | ${link} | ${cell(r.volume)} | ${money(r.pnl, r.currency)} | ${r.r === null ? "-" : r.r} | ${cell(r.account)} |`);
 		}
 	} else {
 		lines.push("No trades this day.");
@@ -332,33 +385,34 @@ export function dayBlock(ctx: RenderContext, date: string, items: TradeWithAccou
 
 // ── Overview note ───────────────────────────────────────────────────────────
 
-export function overviewBlock(
-	ctx: RenderContext,
-	accounts: ApiAccount[],
-	items: TradeWithAccount[],
-	generatedAt: string,
-	now: Date = new Date(),
-): string {
+export interface OverviewAccount {
+	name: string;
+	broker: string | null;
+	trades: number;
+	source: "tradoshi" | "file";
+	/** When the account was last updated in Tradoshi, when known. */
+	updated: string | null;
+	demo: boolean;
+}
+
+export function overviewBlock(ctx: RenderContext, accounts: OverviewAccount[], records: NoteRecord[], generatedAt: string, now: Date = new Date()): string {
 	const lines: string[] = [];
 	lines.push(`Last sync: ${dateTime(ctx, generatedAt)?.replace("T", " ") ?? "-"}`, "");
 
-	lines.push("## Accounts", "", "| Account | Broker | Trades | Updated in Tradoshi |", "|---|---|---|---|");
+	lines.push("## Accounts", "", "| Account | Broker | Trades | Source |", "|---|---|---|---|");
 	for (const a of accounts) {
-		lines.push(`| ${cell(a.name)}${a.mode === "demo" ? " (demo)" : ""} | ${cell(a.broker)} | ${a.tradeCount} | ${cell(dateTime(ctx, a.updatedAt)?.replace("T", " "))} |`);
+		const source = a.source === "file" ? "Imported file" : a.updated ? `Tradoshi, ${dateTime(ctx, a.updated)?.replace("T", " ") ?? ""}` : "Tradoshi";
+		lines.push(`| ${cell(a.name)}${a.demo ? " (demo)" : ""} | ${cell(a.broker)} | ${a.trades} | ${cell(source)} |`);
 	}
 	if (!accounts.length) lines.push("| No account yet | - | 0 | - |");
 
-	const since = now.getTime() - 30 * 86400000;
-	const recent = items.filter(({ trade }) => (toMs(tradeInstant(trade)) ?? 0) >= since);
-	const s = summarize(recent);
+	const since = zoned(now.getTime() - 30 * 86400000, ctx.timeZone).date;
+	const s = summarize(records.filter((r) => r.day >= since));
 	const rate = winRate(s);
 	lines.push("", "## Last 30 days", "", "| Net P&L | Trades | Win rate |", "|---|---|---|");
 	lines.push(`| ${pnlText(s)} | ${s.trades} | ${rate === null ? "-" : `${rate} %`} |`);
 
-	const days = [...new Set(items.map(({ trade }) => tradeDay(ctx, trade)).filter((x): x is string => !!x))]
-		.sort()
-		.reverse()
-		.slice(0, 10);
+	const days = [...new Set(records.map((r) => r.day))].sort().reverse().slice(0, 10);
 	if (days.length) {
 		lines.push("", "## Recent days", "");
 		for (const d of days) lines.push(`- ${dayLink(ctx, d)}`);
@@ -367,7 +421,7 @@ export function overviewBlock(
 	lines.push(
 		"",
 		"> [!info] Where your trades come from",
-		"> Trades synced from your brokers reach this vault once your Tradoshi journal is up to date. Open Tradoshi to fetch your latest trades, then sync again.",
+		"> Trades synced from your brokers reach this vault once your Tradoshi journal is up to date. Open Tradoshi to fetch your latest trades, then sync again. Imported files are read on your computer and never sent anywhere.",
 	);
 	if (ctx.appLinks) lines.push(`> [Open Tradoshi](${appLink(ctx, "overview")})`);
 	return lines.join("\n");
@@ -452,16 +506,4 @@ export function applyFrontmatter(front: Record<string, unknown>, wanted: Frontma
 			front[k] = v;
 		}
 	}
-}
-
-export function groupByDay(ctx: RenderContext, items: TradeWithAccount[]): Map<string, TradeWithAccount[]> {
-	const days = new Map<string, TradeWithAccount[]>();
-	for (const item of items) {
-		const d = tradeDay(ctx, item.trade);
-		if (!d) continue;
-		const list = days.get(d);
-		if (list) list.push(item);
-		else days.set(d, [item]);
-	}
-	return days;
 }

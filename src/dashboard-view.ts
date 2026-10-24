@@ -2,7 +2,6 @@ import { ItemView, Notice, TFile, type WorkspaceLeaf } from "obsidian";
 import { emotionLabel, locale, t, tradesLabel } from "./i18n";
 import { loadDashData, type DashData } from "./journal-data";
 import { LOGO_DATA_URI } from "./logo";
-import { appLink } from "./render";
 import {
 	byCategory,
 	byEmotion,
@@ -148,7 +147,10 @@ export class DashboardView extends ItemView {
 		const brand = head.createDiv({ cls: "tradoshi-brand" });
 		brand.createEl("img", { attr: { src: LOGO_DATA_URI, alt: "" }, cls: "tradoshi-logo" });
 		const title = brand.createDiv();
-		title.createDiv({ cls: "tradoshi-wordmark", text: "Tradoshi" });
+		// The wordmark of the brand: "trad" then "oshi" in Tradoshi blue.
+		const wordmark = title.createDiv({ cls: "tradoshi-wordmark", attr: { "aria-label": "Tradoshi" } });
+		wordmark.appendText("trad");
+		wordmark.createSpan({ cls: "tradoshi-oshi", text: "oshi" });
 		title.createDiv({ cls: "tradoshi-sub", text: t("journal") });
 
 		const controls = head.createDiv({ cls: "tradoshi-controls" });
@@ -171,6 +173,7 @@ export class DashboardView extends ItemView {
 			this.draw();
 		});
 		if (!this.data?.sample) {
+			controls.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
 			const sync = controls.createEl("button", { cls: "mod-cta tradoshi-sync", text: t("sync") });
 			sync.addEventListener("click", () => {
 				sync.setText(t("syncing"));
@@ -185,22 +188,26 @@ export class DashboardView extends ItemView {
 		const left = box.createDiv({ cls: "tradoshi-sample-text" });
 		left.createEl("strong", { text: t("sampleTitle") });
 		left.createEl("p", { text: t("sampleText") });
-		const connect = left.createEl("button", { cls: "mod-cta", text: t("connect") });
-		connect.addEventListener("click", () => window.open(appLink({ appUrl: this.plugin.appUrl }, "dashboard_sample", "params", "section=obsidian")));
+		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
+		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => window.open(this.plugin.signupLink("dashboard_sample")));
+		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
 
-		const flow = box.createDiv({ cls: "tradoshi-flow", attr: { "aria-label": t("dataTitle") } });
+		const flow = box.createDiv({ cls: "tradoshi-flow" });
 		flow.createDiv({ cls: "tradoshi-flow-title", text: t("dataTitle") });
-		const steps = flow.createDiv({ cls: "tradoshi-flow-steps" });
-		const step = (title: string, text: string): void => {
-			const s = steps.createDiv({ cls: "tradoshi-flow-step" });
-			s.createEl("strong", { text: title });
-			s.createSpan({ text });
+		const path = (title: string, text: string, steps: string[]): void => {
+			const p = flow.createDiv({ cls: "tradoshi-path" });
+			const head = p.createDiv({ cls: "tradoshi-path-head" });
+			head.createEl("strong", { text: title });
+			const chain = head.createDiv({ cls: "tradoshi-path-steps" });
+			steps.forEach((step, i) => {
+				if (i) chain.createSpan({ cls: "tradoshi-flow-arrow", text: "→" });
+				chain.createSpan({ cls: "tradoshi-path-step", text: step });
+			});
+			p.createDiv({ cls: "tradoshi-path-text", text });
 		};
-		step(t("dataBroker"), t("dataBrokerText"));
-		steps.createDiv({ cls: "tradoshi-flow-arrow", text: "→" });
-		step(t("dataServer"), t("dataServerText"));
-		steps.createDiv({ cls: "tradoshi-flow-arrow", text: "→" });
-		step(t("dataVault"), t("dataVaultText"));
+		path(t("pathSync"), t("pathSyncText"), [t("dataBroker"), t("dataServer"), t("dataVault")]);
+		path(t("pathFile"), t("pathFileText"), [t("importStatement"), t("dataVault")]);
+		flow.createDiv({ cls: "tradoshi-path-notes", text: t("pathNotes") });
 	}
 
 	private drawKpis(root: HTMLElement, k: ReturnType<typeof kpis>): void {

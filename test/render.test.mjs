@@ -103,7 +103,8 @@ test("replacing the block keeps what the trader wrote", () => {
 test("a symbol starting with # does not become a tag", () => {
 	const t = { ...trade, symbol: "#BTCUSD" };
 	assert.ok(r.tradeBlock(ctx, t, account).startsWith("# \\#BTCUSD long"));
-	assert.ok(r.dayBlock(ctx, "2026-10-20", [{ trade: t, account }], undefined).includes("\\|#BTCUSD long]]"));
+	const rec = r.recordOf(ctx, t, account, "Tradoshi/Trades/2026/x");
+	assert.ok(r.dayBlock(ctx, "2026-10-20", [rec], undefined).includes("[[Tradoshi/Trades/2026/x\\|#BTCUSD long]]"));
 });
 
 test("app links can be turned off", () => {
@@ -111,18 +112,24 @@ test("app links can be turned off", () => {
 });
 
 test("links follow notes where they really are", () => {
-	const moved = { ...ctx, links: { trade: () => "Archive/My XAUUSD trade", day: () => null } };
-	const day = r.dayBlock(moved, "2026-10-20", [{ trade, account }], undefined);
+	const moved = { ...ctx, links: { trade: () => null, day: () => null } };
+	const day = r.dayBlock(moved, "2026-10-20", [r.recordOf(moved, trade, account, "Archive/My XAUUSD trade")], undefined);
 	assert.ok(day.includes("[[Archive/My XAUUSD trade\\|XAUUSD long]]"));
 	assert.ok(r.tradeBlock(moved, trade, account).includes("Day: 2026-10-20"));
+});
+
+test("a trade note read back from its properties gives the same record", () => {
+	const fm = r.tradeFrontmatter(ctx, trade, account);
+	const back = r.recordFromProperties("Tradoshi/Trades/2026/a.md", fm);
+	assert.deepEqual(back, r.recordOf(ctx, trade, account, "Tradoshi/Trades/2026/a"));
 });
 
 test("day notes sum P&L per currency and carry their identity", () => {
 	const eur = { ...account, id: "acc-2", currency: "EUR" };
 	const items = [
-		{ trade, account },
-		{ trade: { ...trade, id: "2", pnl: -100 }, account },
-		{ trade: { ...trade, id: "3", pnl: 50 }, account: eur },
+		r.recordOf(ctx, trade, account, "Tradoshi/Trades/2026/a"),
+		r.recordOf(ctx, { ...trade, id: "2", pnl: -100 }, account, "Tradoshi/Trades/2026/b"),
+		r.recordOf(ctx, { ...trade, id: "3", pnl: 50 }, eur, "Tradoshi/Trades/2026/c"),
 	];
 	const fm = r.dayFrontmatter("2026-10-20", items);
 	assert.equal(fm.tradoshi_day, "2026-10-20");
@@ -185,4 +192,47 @@ test("notes written by version 1.0 are recognised", () => {
 	assert.equal(plan.keyFromProperties({ tags: ["tradoshi/overview"] }), "overview");
 	assert.equal(plan.keyFromProperties({ tradoshi_id: "a/1" }), "trade:a/1");
 	assert.equal(plan.keyFromProperties({ title: "my note" }), undefined);
+});
+
+// ── Files imported on the trader's computer ─────────────────────────────────
+
+const imp = await load("src/import-parsers.ts");
+
+test("a CSV export in English is read with its columns", () => {
+	const csv = "Symbol,Side,Open time,Close time,Entry price,Exit price,Volume,Net P&L,Commission\nXAUUSD,buy,2026-10-20 13:05,2026-10-20 14:10,2650.5,2660,0.5,475.20,-3.5\n";
+	const p = imp.parseCsv(csv, "export.csv");
+	assert.equal(p.trades.length, 1);
+	assert.equal(p.trades[0].side, "long");
+	assert.equal(p.trades[0].pnl, 475.2);
+	assert.equal(p.trades[0].commission, -3.5);
+});
+
+test("a French CSV with semicolons, decimal commas and day-first dates", () => {
+	const csv = "Instrument;Sens;Ouverture;Clôture;Prix d'entrée;Prix de sortie;Volume;Résultat net\nEURUSD;Vente;21/10/2026 09:15;21/10/2026 10:02;1,0850;1,0820;1;30,00\nGBPUSD;Achat;03/10/2026 14:00;13/10/2026 16:30;1,2650;1,2600;0,5;-1 250,50\n";
+	const p = imp.parseCsv(csv, "releve.csv");
+	assert.equal(p.trades.length, 2);
+	assert.equal(p.trades[0].side, "short");
+	assert.equal(p.trades[0].pnl, 30);
+	assert.equal(new Date(p.trades[0].closeTime).getDate(), 21);
+	assert.equal(p.trades[1].pnl, -1250.5);
+	assert.equal(new Date(p.trades[1].closeTime).getMonth(), 9);
+});
+
+test("rows without a result are skipped, and counted", () => {
+	const csv = "Symbol,Type,Close time,Profit\nXAUUSD,sell,2026-10-20 14:10,12\nUS30,buy,2026-10-20 15:00,\n";
+	const p = imp.parseCsv(csv, "x.csv");
+	assert.equal(p.trades.length, 1);
+	assert.ok(p.warnings.includes("skipped:1"));
+});
+
+test("the same file imported twice gives the same trades", () => {
+	const csv = "Symbol,Type,Close time,Profit\nXAUUSD,sell,2026-10-20 14:10,12\n";
+	assert.equal(imp.parseCsv(csv, "x.csv").trades[0].id, imp.parseCsv(csv, "x.csv").trades[0].id);
+});
+
+test("numbers in every format", () => {
+	assert.equal(imp.parseNumber("1 234,56"), 1234.56);
+	assert.equal(imp.parseNumber("1,234.56"), 1234.56);
+	assert.equal(imp.parseNumber("(12.50)"), -12.5);
+	assert.equal(imp.parseNumber("-12.5 USD"), -12.5);
 });
