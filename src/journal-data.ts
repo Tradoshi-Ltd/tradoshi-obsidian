@@ -63,7 +63,8 @@ export function tradesFromVault(app: App): DashTrade[] {
 			r: num(fm.r_multiple),
 			emotion: str(fm.emotion),
 			followedPlan: typeof fm.followed_plan === "boolean" ? fm.followed_plan : null,
-			tags: Array.isArray(fm.tradoshi_tags) ? fm.tradoshi_tags.map(String) : [],
+			// Tradoshi tags, and the ones the trader added in Obsidian (trade log, batch).
+			tags: [...new Set([...(Array.isArray(fm.tradoshi_tags) ? fm.tradoshi_tags.map(String) : []), ...(Array.isArray(fm.review_tags) ? fm.review_tags.map(String) : [])])],
 			entry: num(fm.entry),
 			exit: num(fm.exit),
 			volume: num(fm.volume),

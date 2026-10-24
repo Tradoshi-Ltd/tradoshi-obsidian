@@ -26,14 +26,14 @@ const today = (): string => {
 	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-interface Media {
+export interface Media {
 	src: string;
 	video: boolean;
 	name: string;
 }
 
 /** Images and videos embedded in the note, in the order they appear. */
-function mediaOf(app: App, file: TFile): Media[] {
+export function mediaOf(app: App, file: TFile): Media[] {
 	const out: Media[] = [];
 	for (const e of app.metadataCache.getFileCache(file)?.embeds ?? []) {
 		if (/^https?:\/\//.test(e.link)) {
@@ -49,7 +49,7 @@ function mediaOf(app: App, file: TFile): Media[] {
 	return out;
 }
 
-class MediaModal extends Modal {
+export class MediaModal extends Modal {
 	constructor(
 		app: App,
 		private readonly items: Media[],

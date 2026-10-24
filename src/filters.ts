@@ -1,4 +1,10 @@
-import type { DashTrade } from "./stats";
+/** What the filters read of a trade: the dashboard and the trade log share them. */
+export interface Filterable {
+	symbol: string;
+	side: "long" | "short";
+	pnl: number;
+	tags: string[];
+}
 
 // Filters of the dashboard and the trade log. Pure, so they can be tested.
 
@@ -23,7 +29,7 @@ export function activeFilterCount(f: TradeFilters): number {
 	return f.symbols.length + f.setups.length + f.tags.length + f.excludeTags.length + (f.side === "all" ? 0 : 1) + (f.outcome === "all" ? 0 : 1);
 }
 
-export function applyFilters(trades: DashTrade[], f: TradeFilters): DashTrade[] {
+export function applyFilters<T extends Filterable>(trades: T[], f: TradeFilters): T[] {
 	if (!activeFilterCount(f)) return trades;
 	return trades.filter((t) => {
 		if (f.symbols.length && !f.symbols.includes(t.symbol)) return false;
@@ -41,7 +47,7 @@ export function applyFilters(trades: DashTrade[], f: TradeFilters): DashTrade[] 
 }
 
 /** The values the filters can take, from the trades themselves. */
-export function filterOptions(trades: DashTrade[], categories: Record<string, string>): { symbols: string[]; setups: string[]; tags: string[] } {
+export function filterOptions(trades: Pick<Filterable, "symbol" | "tags">[], categories: Record<string, string>): { symbols: string[]; setups: string[]; tags: string[] } {
 	const symbols = new Set<string>();
 	const setups = new Set<string>();
 	const tags = new Set<string>();

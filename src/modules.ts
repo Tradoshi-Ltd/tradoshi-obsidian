@@ -4,6 +4,7 @@ import { accountsModule } from "./accounts";
 import { manualModule } from "./manual";
 import { navModule } from "./nav/view";
 import { tradeCardModule } from "./tradecard";
+import { tradeLogModule } from "./tradelog";
 import { toolsModule } from "./widgets/tools";
 
 // A module adds one family of features (prop firm rules, reviews, sessions, trade log…)
@@ -34,5 +35,5 @@ export interface PluginModule {
  * which imports this file, and a list built at import time would hold empty slots.
  */
 export function modules(): PluginModule[] {
-	return [tradeCardModule, manualModule, accountsModule, toolsModule, navModule];
+	return [tradeCardModule, manualModule, tradeLogModule, accountsModule, toolsModule, navModule];
 }

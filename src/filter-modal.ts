@@ -1,7 +1,11 @@
 import { Modal, Setting, type App } from "obsidian";
 import { filterOptions, NO_FILTERS, type TradeFilters } from "./filters";
 import { t } from "./i18n";
-import type { DashData } from "./journal-data";
+/** The trades the options come from, and the category of each tag. */
+export interface FilterSource {
+	trades: { symbol: string; tags: string[] }[];
+	categories: Record<string, string>;
+}
 
 /** The dashboard filters: symbols, setups, tags to require or to leave out, side and outcome. */
 export class FilterModal extends Modal {
@@ -9,7 +13,7 @@ export class FilterModal extends Modal {
 
 	constructor(
 		app: App,
-		private readonly data: DashData,
+		private readonly data: FilterSource,
 		current: TradeFilters,
 		private readonly onApply: (f: TradeFilters) => void,
 	) {

@@ -356,3 +356,28 @@
 @container (max-width: 420px) {
 	.tradoshi-tc-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Trade log: table and gallery */
+.tradoshi-log-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3) var(--size-4-3); margin-bottom: var(--size-4-2); }
+.tradoshi-log-selects { display: flex; flex-wrap: wrap; gap: var(--size-2-2); align-items: center; }
+.tradoshi-log-dates { display: flex; align-items: center; gap: var(--size-2-2); }
+.tradoshi-log-summary { margin-bottom: var(--size-4-2); }
+.tradoshi-log-batch { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-2); padding: var(--size-2-3) var(--size-4-2); margin-bottom: var(--size-4-2); background: var(--background-secondary); border: 1px solid var(--interactive-accent); border-radius: var(--radius-m); }
+.tradoshi-log-wrap { overflow-x: auto; }
+.tradoshi-log-table { width: 100%; }
+.tradoshi-log-table th.is-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.tradoshi-log-table td { white-space: nowrap; }
+.tradoshi-log-table tr.is-selected { background: var(--background-modifier-active-hover); }
+.tradoshi-log-table tr.is-muted-row td { opacity: 0.65; }
+.tradoshi-log-group td { background: var(--background-secondary); cursor: pointer; padding-top: var(--size-2-3); }
+.tradoshi-log-thesis { display: inline-block; max-width: 280px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+.tradoshi-log .tradoshi-tag { margin-right: var(--size-2-1); }
+.tradoshi-gallery { display: grid; gap: var(--size-4-3); }
+.tradoshi-gallery.is-small { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.tradoshi-gallery.is-medium { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.tradoshi-gallery.is-large { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+.tradoshi-gallery-card { border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); overflow: hidden; background: var(--background-secondary); }
+.tradoshi-gallery-shot { position: relative; display: block; width: 100%; height: auto; padding: 0; border-radius: 0; background: var(--background-primary); aspect-ratio: 16 / 10; overflow: hidden; }
+.tradoshi-gallery-shot img, .tradoshi-gallery-shot video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tradoshi-gallery-count { position: absolute; right: var(--size-2-2); bottom: var(--size-2-2); background: var(--background-primary); border-radius: var(--radius-s); padding: 0 var(--size-2-2); font-size: var(--font-ui-smaller); }
+.tradoshi-gallery-meta { display: flex; justify-content: space-between; gap: var(--size-2-3); padding: var(--size-2-3) var(--size-4-2); cursor: pointer; }
