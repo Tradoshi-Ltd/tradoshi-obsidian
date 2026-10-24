@@ -236,3 +236,10 @@ test("numbers in every format", () => {
 	assert.equal(imp.parseNumber("(12.50)"), -12.5);
 	assert.equal(imp.parseNumber("-12.5 USD"), -12.5);
 });
+
+test("the guide page follows the trader's language, English otherwise", () => {
+	assert.equal(r.guideLink("fr", "settings"), "https://tradoshi.com/obsidian.html?utm_source=obsidian&utm_medium=plugin&utm_campaign=settings");
+	assert.ok(r.guideLink("es", "x").startsWith("https://tradoshi.com/es/obsidian.html?"));
+	assert.ok(r.guideLink("pt", "x").startsWith("https://tradoshi.com/en/obsidian.html?"));
+	assert.ok(r.guideLink("en", "x").startsWith("https://tradoshi.com/en/obsidian.html?"));
+});

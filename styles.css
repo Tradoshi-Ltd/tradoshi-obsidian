@@ -66,6 +66,7 @@
 .tradoshi-path-step { background: var(--background-modifier-hover); border-radius: var(--radius-s); padding: 1px var(--size-2-3); color: var(--text-normal); }
 .tradoshi-path-text { color: var(--text-muted); font-size: var(--font-ui-smaller); margin-top: var(--size-2-1); }
 .tradoshi-path-notes { color: var(--text-muted); font-size: var(--font-ui-smaller); font-style: italic; }
+.tradoshi-guide-link { display: inline-block; margin-top: var(--size-4-1); font-size: var(--font-ui-smaller); }
 
 /* Import */
 .tradoshi-import .tradoshi-import-privacy { border-left: 3px solid #14a3a0; padding-left: var(--size-4-2); color: var(--text-muted); }

@@ -181,6 +181,14 @@ export function appLink(ctx: Pick<RenderContext, "appUrl">, campaign: string, ha
 	return `${ctx.appUrl}/?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}${extra}${hash ? `#${hash}` : ""}`;
 }
 
+const SITE_URL = "https://tradoshi.com";
+const GUIDE_PATHS: Record<string, string> = { fr: "/obsidian.html", es: "/es/obsidian.html" };
+
+/** The page that explains the plugin step by step, in the trader's language (English otherwise). */
+export function guideLink(language: string, campaign: string): string {
+	return `${SITE_URL}${GUIDE_PATHS[language] ?? "/en/obsidian.html"}?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}`;
+}
+
 // ── Trade notes ─────────────────────────────────────────────────────────────
 
 /**

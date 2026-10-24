@@ -27,6 +27,8 @@ Properties work with the core Bases plugin and with Dataview, so you can build y
 
 In both cases, the notes you write never leave your computer. Importing the same file again updates the same notes instead of adding copies, and the column mapping of a CSV can be corrected before importing.
 
+Every step, with screenshots: [Tradoshi for Obsidian](https://tradoshi.com/en/obsidian.html?utm_source=obsidian&utm_medium=readme&utm_campaign=guide).
+
 ## Connect in one click
 
 1. Install the plugin and enable it.

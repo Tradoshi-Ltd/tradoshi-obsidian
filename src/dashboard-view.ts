@@ -1,7 +1,8 @@
 import { ItemView, Notice, TFile, type WorkspaceLeaf } from "obsidian";
-import { emotionLabel, locale, t, tradesLabel } from "./i18n";
+import { emotionLabel, language, locale, t, tradesLabel } from "./i18n";
 import { loadDashData, type DashData } from "./journal-data";
 import { LOGO_DATA_URI } from "./logo";
+import { guideLink } from "./render";
 import {
 	byCategory,
 	byEmotion,
@@ -208,6 +209,7 @@ export class DashboardView extends ItemView {
 		path(t("pathSync"), t("pathSyncText"), [t("dataBroker"), t("dataServer"), t("dataVault")]);
 		path(t("pathFile"), t("pathFileText"), [t("importStatement"), t("dataVault")]);
 		flow.createDiv({ cls: "tradoshi-path-notes", text: t("pathNotes") });
+		flow.createEl("a", { cls: "tradoshi-guide-link", text: t("howItWorks"), href: guideLink(language(), "dashboard_sample") });
 	}
 
 	private drawKpis(root: HTMLElement, k: ReturnType<typeof kpis>): void {

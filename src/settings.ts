@@ -1,7 +1,7 @@
 import { normalizePath, PluginSettingTab, type App, type SettingDefinitionItem } from "obsidian";
 import type TradoshiPlugin from "./main";
-import { t } from "./i18n";
-import { appLink, isValidTimeZone } from "./render";
+import { language, t } from "./i18n";
+import { appLink, guideLink, isValidTimeZone } from "./render";
 
 export const TOKEN_SECRET_ID = "tradoshi-access-token";
 
@@ -79,6 +79,11 @@ export class TradoshiSettingTab extends PluginSettingTab {
 						name: t("sGetToken"),
 						desc: t("sGetTokenDesc"),
 						action: () => window.open(appLink(ctx, "settings", "params", "section=obsidian")),
+					},
+					{
+						name: t("sGuide"),
+						desc: t("sGuideDesc"),
+						action: () => window.open(guideLink(language(), "settings")),
 					},
 					{
 						name: t("sCreate"),
