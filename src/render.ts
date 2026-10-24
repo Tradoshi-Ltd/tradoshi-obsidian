@@ -374,20 +374,26 @@ export function dayFrontmatter(date: string, records: NoteRecord[]): Frontmatter
 	};
 }
 
+/** The language of the code block that shows the report card of a day. */
+export const DAY_CARD_BLOCK = "tradoshi-day";
+
 export function dayBlock(ctx: RenderContext, date: string, records: NoteRecord[], note: ApiDayNote | undefined): string {
-	// No heading: Obsidian already shows the file name, which is the date.
-	const lines: string[] = [];
+	// No heading: Obsidian already shows the file name, which is the date. The plugin
+	// draws the report card of the day; the same facts follow in a folded callout,
+	// readable wherever the plugin is not (mobile, Publish, another editor).
+	const lines: string[] = ["```" + DAY_CARD_BLOCK, "```", ""];
 	const sorted = [...records].sort((a, b) => (a.closed ?? "").localeCompare(b.closed ?? ""));
 	if (sorted.length) {
 		const s = summarize(sorted);
 		const rate = winRate(s);
-		lines.push(`**Net P&L:** ${pnlText(s)} · **Trades:** ${s.trades}${rate === null ? "" : ` · **Win rate:** ${rate} %`}`, "");
-		lines.push("| Time | Trade | Volume | P&L | R | Account |", "|---|---|---|---|---|---|");
+		lines.push(`> [!info]- **Net P&L:** ${pnlText(s)} · **Trades:** ${s.trades}${rate === null ? "" : ` · **Win rate:** ${rate} %`}`);
+		const table = ["| Time | Trade | Volume | P&L | R | Account |", "|---|---|---|---|---|---|"];
 		for (const r of sorted) {
 			const label = `${r.symbol.replace(/[|[\]]/g, "")} ${r.side}`;
 			const link = ctx.tradeNotes && r.path ? `[[${r.path}\\|${label}]]` : label;
-			lines.push(`| ${r.closed ? r.closed.slice(11, 16) : ""} | ${link} | ${cell(r.volume)} | ${money(r.pnl, r.currency)} | ${r.r === null ? "-" : r.r} | ${cell(r.account)} |`);
+			table.push(`| ${r.closed ? r.closed.slice(11, 16) : ""} | ${link} | ${cell(r.volume)} | ${money(r.pnl, r.currency)} | ${r.r === null ? "-" : r.r} | ${cell(r.account)} |`);
 		}
+		lines.push(...table.map((l) => `> ${l}`));
 	} else {
 		lines.push("No trades this day.");
 	}

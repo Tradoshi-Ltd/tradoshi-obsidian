@@ -1,4 +1,5 @@
 import { aumWidget, targetsWidget } from "../accounts/widgets";
+import { REVIEW_WIDGETS } from "../reviews/widgets";
 import { ANALYTICS_WIDGETS } from "./analytics";
 import { CORE_WIDGETS } from "./core";
 import { pinnedNoteWidget, positionSizeWidget, quickLinksWidget, unreviewedWidget } from "./tools";
@@ -11,6 +12,7 @@ export const WIDGETS: Widget[] = [
 	quickLinksWidget,
 	...CORE_WIDGETS,
 	unreviewedWidget,
+	...REVIEW_WIDGETS,
 	...ANALYTICS_WIDGETS,
 	aumWidget,
 	targetsWidget,
