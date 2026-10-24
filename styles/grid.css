@@ -1,0 +1,38 @@
+/* Dashboard grid: 12 columns, each widget spans by its size. Sized on the pane, not the window. */
+.tradoshi-dash { container-type: inline-size; container-name: tradoshi; }
+.tradoshi-grid12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--size-4-3); align-items: start; }
+.tradoshi-grid12 > .tradoshi-card { margin: 0; }
+.tradoshi-w-full { grid-column: span 12; }
+.tradoshi-w-wide { grid-column: span 7; }
+.tradoshi-w-narrow { grid-column: span 5; }
+.tradoshi-w-half { grid-column: span 6; }
+.tradoshi-w-third { grid-column: span 4; }
+.tradoshi-card.is-bare { background: none; border: none; padding: 0; }
+.tradoshi-card.is-bare .tradoshi-kpis { margin-bottom: 0; }
+.tradoshi-grid12 .tradoshi-chart { max-height: 420px; }
+
+@container tradoshi (max-width: 900px) {
+	.tradoshi-w-wide, .tradoshi-w-narrow, .tradoshi-w-half { grid-column: span 12; }
+	.tradoshi-w-third { grid-column: span 6; }
+	.tradoshi-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container tradoshi (max-width: 600px) {
+	.tradoshi-w-third { grid-column: span 12; }
+	.tradoshi-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Columns around a zero line (weekdays, hours, days) */
+.tradoshi-columns { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: var(--size-4-2); height: 150px; }
+.tradoshi-columns.is-dense { gap: 2px; }
+.tradoshi-columns.is-dense .tradoshi-weekday-bar { left: 8%; right: 8%; }
+.tradoshi-columns.is-dense .tradoshi-weekday-label { font-size: 0.7em; }
+.tradoshi-chart.is-loss .tradoshi-line { stroke: var(--tradoshi-loss); }
+.tradoshi-chart.is-loss .tradoshi-area { fill: var(--tradoshi-loss-soft, rgba(224, 84, 63, 0.15)); }
+
+/* Header controls, filters */
+.tradoshi-periods { display: flex; flex-wrap: wrap; gap: var(--size-2-2); }
+.tradoshi-has-filters { color: var(--text-accent); }
+.tradoshi-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-2); margin-bottom: var(--size-4-3); }
+.tradoshi-link-button { background: none; box-shadow: none; color: var(--text-accent); padding: 0 var(--size-2-2); }
+.tradoshi-filter-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: var(--font-semibold); margin: var(--size-4-3) 0 var(--size-2-2); }
+.tradoshi-filter-chips { display: flex; flex-wrap: wrap; gap: var(--size-2-2); }

@@ -1,7 +1,10 @@
 import { normalizePath, PluginSettingTab, type App, type SettingDefinitionItem } from "obsidian";
 import type TradoshiPlugin from "./main";
+import { NO_FILTERS, type TradeFilters } from "./filters";
 import { language, t } from "./i18n";
+import { MODULES } from "./modules";
 import { appLink, guideLink, isValidTimeZone } from "./render";
+import type { LayoutItem } from "./widgets/registry";
 
 export const TOKEN_SECRET_ID = "tradoshi-access-token";
 
@@ -29,6 +32,12 @@ export interface TradoshiSettings {
 	dashboardOpened: boolean;
 	/** Server time of the last complete sync, used to ask only for what changed. */
 	lastSync: string | null;
+	/** Order of the dashboard widgets and which are shown. Empty: the default layout. */
+	layout: LayoutItem[];
+	/** Filters of the dashboard, kept from one opening to the next. */
+	filters: TradeFilters;
+	/** Data of each module (prop firm challenges, sessions, review templates…), by module id. */
+	modules: Record<string, unknown>;
 }
 
 export const DEFAULT_SETTINGS: TradoshiSettings = {
@@ -48,6 +57,9 @@ export const DEFAULT_SETTINGS: TradoshiSettings = {
 	tagCategories: {},
 	dashboardOpened: false,
 	lastSync: null,
+	layout: [],
+	filters: { ...NO_FILTERS },
+	modules: {},
 };
 
 const hours = (): Record<string, string> =>
@@ -189,6 +201,7 @@ export class TradoshiSettingTab extends PluginSettingTab {
 					},
 				],
 			},
+			...MODULES.flatMap((m) => m.settings?.(this.plugin) ?? []),
 		];
 	}
 

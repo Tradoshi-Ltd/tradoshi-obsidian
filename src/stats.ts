@@ -16,11 +16,23 @@ export interface DashTrade {
 	day: string;
 	/** Hour of the open in the journal time zone, 0 to 23, when known. */
 	hour: number | null;
+	/** Open, milliseconds since epoch, when known. */
+	openAt: number | null;
 	pnl: number;
 	r: number | null;
 	emotion: string | null;
 	followedPlan: boolean | null;
 	tags: string[];
+	entry: number | null;
+	exit: number | null;
+	volume: number | null;
+	stopLoss: number | null;
+	takeProfit: number | null;
+	/** Commission and swap, as written in the note (a cost is negative). */
+	fees: number;
+	/** The trader's own grade of the trade, when given. */
+	rating: number | null;
+	broker: string | null;
 }
 
 export interface Kpis {

@@ -2,8 +2,10 @@ import { Notice, Plugin, TFile, TFolder, addIcon, type ObsidianProtocolData, typ
 import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
+import { NO_FILTERS } from "./filters";
 import { ImportModal } from "./import-modal";
 import { t } from "./i18n";
+import { MODULES } from "./modules";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -95,6 +97,8 @@ export default class TradoshiPlugin extends Plugin {
 		// obsidian://tradoshi?token=… is opened by the "Connect Obsidian" button of the app.
 		this.registerObsidianProtocolHandler("tradoshi", (params) => this.onConnectLink(params));
 
+		for (const m of MODULES) m.load(this);
+
 		this.app.workspace.onLayoutReady(() => {
 			this.keyByPath = indexVault(this.app).byPath;
 			this.watchVault();
@@ -111,6 +115,9 @@ export default class TradoshiPlugin extends Plugin {
 	async loadSettings(): Promise<void> {
 		this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) as Partial<TradoshiSettings> | null) };
 		if (!Array.isArray(this.settings.deletedKeys)) this.settings.deletedKeys = [];
+		if (!Array.isArray(this.settings.layout)) this.settings.layout = [];
+		this.settings.filters = { ...NO_FILTERS, ...(this.settings.filters ?? {}) };
+		if (!this.settings.modules || typeof this.settings.modules !== "object") this.settings.modules = {};
 		// The time zone is taken from the computer once, then kept: a trader who moves,
 		// or opens the vault on a computer set to another zone, keeps the same days.
 		if (!this.settings.timeZone || !isValidTimeZone(this.settings.timeZone)) {
@@ -121,6 +128,16 @@ export default class TradoshiPlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+	}
+
+	/** The data a module keeps, or its default the first time. */
+	moduleData<T>(id: string, fallback: T): T {
+		return (this.settings.modules[id] as T | undefined) ?? fallback;
+	}
+
+	async saveModuleData(id: string, value: unknown): Promise<void> {
+		this.settings.modules[id] = value;
+		await this.saveSettings();
 	}
 
 	async onSettingsChanged(key: string): Promise<void> {
@@ -227,7 +244,8 @@ export default class TradoshiPlugin extends Plugin {
 		await this.app.workspace.revealLeaf(leaf);
 	}
 
-	private refreshDashboards(): void {
+	/** Redraws every open dashboard, after the notes or a module's data changed. */
+	refreshDashboards(): void {
 		for (const leaf of this.app.workspace.getLeavesOfType(DASHBOARD_VIEW)) {
 			if (leaf.view instanceof DashboardView) leaf.view.refresh();
 		}

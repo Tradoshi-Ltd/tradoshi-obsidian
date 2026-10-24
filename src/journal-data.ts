@@ -24,6 +24,17 @@ function hourOf(v: unknown): number | null {
 	return m ? Number(m[1]) : null;
 }
 
+/**
+ * Open of a trade, in milliseconds. `opened` and `closed` are written in the journal
+ * time zone; their difference is the holding time whatever the zone, so the open is
+ * the absolute close minus that difference.
+ */
+function openOf(opened: unknown, closed: unknown, at: number): number | null {
+	if (typeof opened !== "string" || typeof closed !== "string") return null;
+	const held = Date.parse(`${closed}Z`) - Date.parse(`${opened}Z`);
+	return Number.isFinite(held) && held >= 0 ? at - held : null;
+}
+
 export function tradesFromVault(app: App): DashTrade[] {
 	const out: DashTrade[] = [];
 	for (const file of app.vault.getMarkdownFiles()) {
@@ -33,7 +44,8 @@ export function tradesFromVault(app: App): DashTrade[] {
 		const pnl = num(fm?.pnl);
 		if (!fm || !key || !day || pnl === null) continue;
 		const atIso = str(fm.closed_utc) ?? (str(fm.closed) ? `${String(fm.closed)}:00` : null) ?? `${day}T12:00:00`;
-		const at = new Date(atIso).getTime();
+		const parsed = new Date(atIso).getTime();
+		const at = Number.isNaN(parsed) ? new Date(`${day}T12:00:00Z`).getTime() : parsed;
 		out.push({
 			key,
 			path: file.path,
@@ -41,14 +53,23 @@ export function tradesFromVault(app: App): DashTrade[] {
 			currency: str(fm.currency) ?? "USD",
 			symbol: str(fm.symbol) ?? "",
 			side: fm.side === "short" ? "short" : "long",
-			at: Number.isNaN(at) ? new Date(`${day}T12:00:00Z`).getTime() : at,
+			at,
 			day,
 			hour: hourOf(fm.opened),
+			openAt: openOf(fm.opened, fm.closed, at),
 			pnl,
 			r: num(fm.r_multiple),
 			emotion: str(fm.emotion),
 			followedPlan: typeof fm.followed_plan === "boolean" ? fm.followed_plan : null,
 			tags: Array.isArray(fm.tradoshi_tags) ? fm.tradoshi_tags.map(String) : [],
+			entry: num(fm.entry),
+			exit: num(fm.exit),
+			volume: num(fm.volume),
+			stopLoss: num(fm.stop_loss),
+			takeProfit: num(fm.take_profit),
+			fees: (num(fm.commission) ?? 0) + (num(fm.swap) ?? 0),
+			rating: num(fm.rating),
+			broker: str(fm.broker),
 		});
 	}
 	return out;
@@ -67,7 +88,7 @@ export function sampleTrades(now: number = Date.now()): DashTrade[] {
 	const base = Date.parse(SAMPLE_LAST_CLOSE);
 	const last = base + Math.floor((now - base) / WEEK) * WEEK;
 	return SAMPLE_TRADES.map((r, i) => {
-		const [acc, symbol, short, openedMin, closedMin, , , , pnl, rMultiple, emotion, followed, tags] = r;
+		const [acc, symbol, short, openedMin, closedMin, entry, exit, volume, pnl, rMultiple, emotion, followed, tags] = r;
 		const at = last - closedMin * 60000;
 		const opened = new Date(last - openedMin * 60000);
 		const account = SAMPLE_ACCOUNTS[acc];
@@ -81,11 +102,20 @@ export function sampleTrades(now: number = Date.now()): DashTrade[] {
 			at,
 			day: localDay(at),
 			hour: opened.getHours(),
+			openAt: opened.getTime(),
 			pnl,
 			r: rMultiple,
 			emotion,
 			followedPlan: followed === null ? null : followed === 1,
 			tags: tags.map(sampleTag),
+			entry,
+			exit,
+			volume,
+			stopLoss: null,
+			takeProfit: null,
+			fees: 0,
+			rating: null,
+			broker: null,
 		};
 	});
 }
