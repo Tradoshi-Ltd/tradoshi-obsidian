@@ -1,4 +1,5 @@
 import { aumWidget, targetsWidget } from "../accounts/widgets";
+import { REVIEW_WIDGETS } from "../reviews/widgets";
 import { ANALYTICS_WIDGETS } from "./analytics";
 import { PROPFIRM_WIDGETS } from "../propfirm/widgets";
 import { setupRankingWidget } from "../setups/widget";
@@ -15,6 +16,7 @@ export const WIDGETS: Widget[] = [
 	...CORE_WIDGETS,
 	setupRankingWidget,
 	unreviewedWidget,
+	...REVIEW_WIDGETS,
 	...PROPFIRM_WIDGETS,
 	...ANALYTICS_WIDGETS,
 	aumWidget,
