@@ -242,6 +242,11 @@ export default class TradoshiPlugin extends Plugin {
 		return appLink(renderContext(this.settings), campaign);
 	}
 
+	/** The screen of the app where a broker or prop firm account is connected. */
+	brokerLink(campaign: string): string {
+		return appLink(renderContext(this.settings), campaign, "import");
+	}
+
 	private scheduleAutoSync(): void {
 		if (this.autoSyncTimer !== null) window.clearInterval(this.autoSyncTimer);
 		this.autoSyncTimer = null;

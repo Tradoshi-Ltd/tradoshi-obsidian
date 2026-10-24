@@ -116,6 +116,10 @@ export class DashboardView extends ItemView {
 
 		this.drawHeader(root);
 		if (this.data.sample) this.drawSample(root);
+		else if (!this.data.trades.length) {
+			this.drawEmpty(root);
+			return;
+		}
 
 		const k = kpis(trades, currency);
 		this.drawKpis(root, k);
@@ -210,6 +214,18 @@ export class DashboardView extends ItemView {
 		path(t("pathFile"), t("pathFileText"), [t("importStatement"), t("dataVault")]);
 		flow.createDiv({ cls: "tradoshi-path-notes", text: t("pathNotes") });
 		flow.createEl("a", { cls: "tradoshi-guide-link", text: t("howItWorks"), href: guideLink(language(), "dashboard_sample") });
+	}
+
+	/** Connected, but no trade yet: says what to do instead of showing empty cards. */
+	private drawEmpty(root: HTMLElement): void {
+		const box = root.createDiv({ cls: "tradoshi-sample" });
+		const left = box.createDiv({ cls: "tradoshi-sample-text" });
+		left.createEl("strong", { text: t("emptyTitle") });
+		left.createEl("p", { text: t("emptyText") });
+		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
+		buttons.createEl("button", { cls: "mod-cta", text: t("connectBroker") }).addEventListener("click", () => window.open(this.plugin.brokerLink("dashboard_empty")));
+		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		left.createEl("a", { cls: "tradoshi-guide-link", text: t("howItWorks"), href: guideLink(language(), "dashboard_empty") });
 	}
 
 	private drawKpis(root: HTMLElement, k: ReturnType<typeof kpis>): void {
