@@ -8,6 +8,7 @@ import { addOwnTag, ConfirmModal, deleteNotes, NamePrompt, setReviewed } from ".
 import { COLUMNS, DEFAULT_COLUMNS, type Column } from "./columns";
 import { logTrades, type LogTrade, type TradeKind } from "./data";
 import { groupKey, inRange, rangeBetween, rangeOf, sortBy, totals, type GroupMode, type RangeMode } from "./logic";
+import { openManualTrade } from "../manual";
 import { lt } from "./text";
 
 export const TRADE_LOG_VIEW = "tradoshi-trade-log";
@@ -184,6 +185,10 @@ export class TradeLogView extends ItemView {
 		root.empty();
 		root.addClass("tradoshi-dash", "tradoshi-log");
 		const s = this.s;
+		if (!this.all.length) {
+			this.drawFirstRun(root);
+			return;
+		}
 		const rows = this.visible();
 		this.drawToolbar(root, s);
 		const t = totals(rows.filter((r) => r.kind === "executed"));
@@ -202,6 +207,19 @@ export class TradeLogView extends ItemView {
 			if (this.selecting) this.drawBatchBar(root, rows);
 			this.drawTable(root, rows, s);
 		}
+	}
+
+	/** No trade note in the vault yet: what to do, rather than an empty table. */
+	private drawFirstRun(root: HTMLElement): void {
+		const box = root.createDiv({ cls: "tradoshi-sample" });
+		const left = box.createDiv({ cls: "tradoshi-sample-text" });
+		left.createEl("strong", { text: lt("emptyTitle") });
+		left.createEl("p", { text: lt("emptyText") });
+		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
+		if (!this.plugin.isConnected()) buttons.createEl("button", { cls: "mod-cta", text: lt("connect") }).addEventListener("click", () => window.open(this.plugin.signupLink("trade_log")));
+		else buttons.createEl("button", { cls: "mod-cta", text: lt("connectBroker") }).addEventListener("click", () => window.open(this.plugin.brokerLink("trade_log")));
+		buttons.createEl("button", { text: lt("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		buttons.createEl("button", { text: lt("addTrade") }).addEventListener("click", () => openManualTrade(this.plugin));
 	}
 
 	private drawToolbar(root: HTMLElement, s: LogSettings): void {
