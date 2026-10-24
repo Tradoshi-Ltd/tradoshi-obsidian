@@ -270,6 +270,14 @@ export class DashboardView extends ItemView {
 		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
 		buttons.createEl("button", { cls: "mod-cta", text: t("connectBroker") }).addEventListener("click", () => window.open(this.plugin.brokerLink("dashboard_empty")));
 		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		// Notes the trader deleted are not written again: an empty journal says so, or a
+		// deleted folder would look like an account without trades.
+		const deleted = this.plugin.settings.deletedKeys.length;
+		if (deleted) {
+			const row = left.createDiv({ cls: "tradoshi-deleted-row" });
+			row.createSpan({ text: t("emptyDeleted", { n: deleted }) });
+			row.createEl("button", { text: t("emptyRestore") }).addEventListener("click", () => void this.plugin.restoreDeletedNotes());
+		}
 		if (this.plugin.pairingPending()) left.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 		left.createEl("a", { cls: "tradoshi-guide-link", text: t("howItWorks"), href: guideLink(language(), "dashboard_empty") });
 	}
