@@ -259,6 +259,19 @@
 .tradoshi-manual-result.neg { color: var(--tradoshi-loss, #e0543f); }
 .tradoshi-tc-edit { margin-top: var(--size-2-3); }
 
+/* Navigation sidebar */
+.tradoshi-nav { padding: var(--size-4-2); }
+.tradoshi-nav-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-semibold); color: var(--text-muted); margin: var(--size-4-2) 0 var(--size-2-2); }
+.tradoshi-nav-places { display: grid; gap: var(--size-2-1); }
+.tradoshi-nav-place { display: flex; align-items: center; gap: var(--size-2-3); justify-content: flex-start; background: none; box-shadow: none; padding: var(--size-2-2) var(--size-2-3); }
+.tradoshi-nav-place:hover { background: var(--background-modifier-hover); }
+.tradoshi-nav-search { width: 100%; margin: var(--size-4-3) 0 var(--size-2-2); }
+.tradoshi-nav-results { display: grid; gap: 2px; }
+.tradoshi-nav-row { display: flex; justify-content: space-between; align-items: center; gap: var(--size-2-3); width: 100%; height: auto; text-align: left; background: none; box-shadow: none; padding: var(--size-2-2) var(--size-2-3); }
+.tradoshi-nav-row:hover { background: var(--background-modifier-hover); }
+.tradoshi-nav .pos { color: var(--tradoshi-gain, #14a3a0); }
+.tradoshi-nav .neg { color: var(--tradoshi-loss, #e0543f); }
+
 /* Quick links, trades to review, position size, pinned note */
 .tradoshi-quick-card { padding: var(--size-2-3) var(--size-4-3); }
 .tradoshi-quick-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3); }

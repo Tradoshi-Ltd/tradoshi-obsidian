@@ -2,6 +2,7 @@ import type { SettingDefinitionItem } from "obsidian";
 import type TradoshiPlugin from "./main";
 import { accountsModule } from "./accounts";
 import { manualModule } from "./manual";
+import { navModule } from "./nav/view";
 import { tradeCardModule } from "./tradecard";
 import { toolsModule } from "./widgets/tools";
 
@@ -33,5 +34,5 @@ export interface PluginModule {
  * which imports this file, and a list built at import time would hold empty slots.
  */
 export function modules(): PluginModule[] {
-	return [tradeCardModule, manualModule, accountsModule, toolsModule];
+	return [tradeCardModule, manualModule, accountsModule, toolsModule, navModule];
 }
