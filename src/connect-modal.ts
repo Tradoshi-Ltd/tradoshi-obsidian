@@ -1,4 +1,5 @@
 import { Modal, Setting, type App } from "obsidian";
+import { t } from "./i18n";
 
 /** Asks before a link from the Tradoshi app connects this vault to a journal. */
 export class ConnectModal extends Modal {
@@ -11,21 +12,21 @@ export class ConnectModal extends Modal {
 	}
 
 	onOpen(): void {
-		this.setTitle("Connect to Tradoshi");
+		this.setTitle(t("connectTitle"));
 		this.contentEl.createEl("p", {
-			text: `Tradoshi will write your trading journal into the "${this.folder}" folder of this vault, as Markdown notes you own. The access token can only read your journal.`,
+			text: t("connectText", { folder: this.folder }),
 		});
 		new Setting(this.contentEl)
 			.addButton((b) =>
 				b
-					.setButtonText("Connect")
+					.setButtonText(t("connectButton"))
 					.setCta()
 					.onClick(() => {
 						this.close();
 						this.onConfirm();
 					}),
 			)
-			.addButton((b) => b.setButtonText("Cancel").onClick(() => this.close()));
+			.addButton((b) => b.setButtonText(t("cancel")).onClick(() => this.close()));
 	}
 
 	onClose(): void {

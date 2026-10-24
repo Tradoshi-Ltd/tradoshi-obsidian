@@ -3,6 +3,7 @@ import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
 import { ImportModal } from "./import-modal";
+import { t } from "./i18n";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -58,36 +59,36 @@ export default class TradoshiPlugin extends Plugin {
 
 		addIcon("tradoshi", TRADOSHI_ICON);
 		this.registerView(DASHBOARD_VIEW, (leaf) => new DashboardView(leaf, this));
-		this.addRibbonIcon("tradoshi", "Open Tradoshi dashboard", () => void this.openDashboard());
+		this.addRibbonIcon("tradoshi", t("ribbon"), () => void this.openDashboard());
 
 		this.addCommand({
 			id: "sync-now",
-			name: "Sync journal now",
+			name: t("cmdSync"),
 			callback: () => void this.sync(true),
 		});
 		this.addCommand({
 			id: "open-dashboard",
-			name: "Open the dashboard",
+			name: t("cmdDashboard"),
 			callback: () => void this.openDashboard(),
 		});
 		this.addCommand({
 			id: "open-overview",
-			name: "Open the overview note",
+			name: t("cmdOverview"),
 			callback: () => void this.openOverview(),
 		});
 		this.addCommand({
 			id: "open-web-app",
-			name: "Open the web app",
+			name: t("cmdWebApp"),
 			callback: () => window.open(this.link("command")),
 		});
 		this.addCommand({
 			id: "import-statement",
-			name: "Import a statement",
+			name: t("importStatement"),
 			callback: () => this.openImport(),
 		});
 		this.addCommand({
 			id: "restore-deleted-notes",
-			name: "Restore deleted notes",
+			name: t("cmdRestore"),
 			callback: () => void this.restoreDeletedNotes(),
 		});
 
@@ -182,7 +183,7 @@ export default class TradoshiPlugin extends Plugin {
 		this.settings.deletedKeys = [];
 		this.settings.lastSync = null;
 		await this.saveSettings();
-		new Notice(count ? `Tradoshi: ${count} deleted notes will be written again.` : "Tradoshi: no deleted note to restore.");
+		new Notice(`Tradoshi: ${count ? t("nRestore", { n: count }) : t("nNoRestore")}`);
 		if (count) await this.sync(true);
 	}
 
@@ -253,21 +254,25 @@ export default class TradoshiPlugin extends Plugin {
 	private onConnectLink(params: ObsidianProtocolData): void {
 		const token = (params.token ?? "").trim();
 		if (!TOKEN_PATTERN.test(token)) {
-			new Notice("Tradoshi: this link does not carry a valid access token. Create a new one in Tradoshi.");
+			new Notice(`Tradoshi: ${t("nBadLink")}`);
 			return;
 		}
-		new ConnectModal(this.app, this.settings.folder, () => {
-			void (async () => {
-				this.app.secretStorage.setSecret(TOKEN_SECRET_ID, token);
-				this.settings.tokenSecret = TOKEN_SECRET_ID;
-				this.settings.lastSync = null;
-				this.tokenWarned = false;
-				await this.saveSettings();
-				new Notice("Tradoshi: connected. Your journal is on its way.");
-				await this.sync(true);
-				await this.openDashboard();
-			})();
-		}).open();
+		// The dashboard first: it brings the main window forward, so the confirmation opens there
+		// and not in a detached window, with the sample journal behind it.
+		void this.openDashboard().then(() => {
+			new ConnectModal(this.app, this.settings.folder, () => {
+				void (async () => {
+					this.app.secretStorage.setSecret(TOKEN_SECRET_ID, token);
+					this.settings.tokenSecret = TOKEN_SECRET_ID;
+					this.settings.lastSync = null;
+					this.tokenWarned = false;
+					await this.saveSettings();
+					new Notice(`Tradoshi: ${t("nConnected")}`);
+					await this.sync(true);
+					await this.openDashboard();
+				})();
+			}).open();
+		});
 	}
 
 	private overviewFile(): TFile | null {
@@ -282,7 +287,7 @@ export default class TradoshiPlugin extends Plugin {
 	private async openOverview(): Promise<void> {
 		const file = this.overviewFile();
 		if (!file) {
-			new Notice("Tradoshi: run a first sync to create the overview note.");
+			new Notice(`Tradoshi: ${t("nNoOverview")}`);
 			return;
 		}
 		await this.app.workspace.getLeaf(false).openFile(file);
@@ -296,12 +301,12 @@ export default class TradoshiPlugin extends Plugin {
 	 */
 	async sync(manual: boolean): Promise<void> {
 		if (this.syncing) {
-			if (manual) new Notice("Tradoshi: a sync is already running.");
+			if (manual) new Notice(`Tradoshi: ${t("nSyncRunning")}`);
 			return;
 		}
 		const token = this.getToken();
 		if (!token) {
-			if (manual) new Notice("Tradoshi: add your access token in the settings first.");
+			if (manual) new Notice(`Tradoshi: ${t("nAddToken")}`);
 			return;
 		}
 		this.syncing = true;
@@ -321,12 +326,12 @@ export default class TradoshiPlugin extends Plugin {
 			this.settings.lastSync = data.generatedAt;
 			await this.saveSettings();
 			if (manual || stats.created + stats.updated > 0) {
-				new Notice(`Tradoshi: ${stats.created} notes created, ${stats.updated} updated.`);
+				new Notice(`Tradoshi: ${t("nSynced", { c: stats.created, u: stats.updated })}`);
 			}
 			// Notes just written are read by the dashboard once Obsidian has indexed them.
 			window.setTimeout(() => this.refreshDashboards(), 1500);
 		} catch (e) {
-			const message = e instanceof TradoshiError ? e.message : "the sync stopped on an unexpected error.";
+			const message = e instanceof TradoshiError ? e.message : t("nUnexpected");
 			const tokenProblem = e instanceof TradoshiError && e.status === 401;
 			if (manual || (tokenProblem && !this.tokenWarned)) new Notice(`Tradoshi: ${message}`, 10000);
 			if (tokenProblem) this.tokenWarned = true;
