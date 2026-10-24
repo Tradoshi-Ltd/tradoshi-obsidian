@@ -181,9 +181,6 @@
 	.tradoshi-flow-arrow { transform: rotate(90deg); }
 	.tradoshi-dash { padding: var(--size-4-2); }
 }
-@media (prefers-reduced-motion: reduce) {
-	.tradoshi-dash * { transition: none !important; }
-}
 
 /* A feature of a paid plan, in place of the feature. */
 .tradoshi-lock {
@@ -1005,7 +1002,7 @@ button.tradoshi-q-choice.is-active { background: var(--interactive-accent); colo
 .tradoshi-dash button.tradoshi-su-rank-more { margin-top: var(--size-2-3); padding: 0; }
 
 /* The trade card: a setup that has its sheet opens it */
-.tradoshi-tag.is-link { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.tradoshi-tag.is-link { cursor: pointer; border-bottom: 1px dotted currentColor; }
 
 /* Figures at the top of a setup sheet */
 .tradoshi-su-block {

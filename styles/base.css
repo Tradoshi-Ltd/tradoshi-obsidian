@@ -181,9 +181,6 @@
 	.tradoshi-flow-arrow { transform: rotate(90deg); }
 	.tradoshi-dash { padding: var(--size-4-2); }
 }
-@media (prefers-reduced-motion: reduce) {
-	.tradoshi-dash * { transition: none !important; }
-}
 
 /* A feature of a paid plan, in place of the feature. */
 .tradoshi-lock {

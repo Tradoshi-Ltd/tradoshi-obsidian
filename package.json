@@ -1,6 +1,6 @@
 {
   "name": "tradoshi-obsidian",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Sync your Tradoshi trading journal into Markdown notes.",
   "main": "main.js",
   "private": true,

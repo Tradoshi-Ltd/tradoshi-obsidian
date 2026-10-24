@@ -1,0 +1,42 @@
+name: Release
+
+# A version tag (for example 1.0.1) builds the plugin, attests where main.js and
+# styles.css come from, and publishes the GitHub release with the three files.
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      - name: Check the tag matches manifest.json
+        run: test "$(node -p "require('./manifest.json').version")" = "${GITHUB_REF_NAME}"
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" main.js manifest.json styles.css --title "${GITHUB_REF_NAME}" --notes "Tradoshi Trading Journal ${GITHUB_REF_NAME}."
