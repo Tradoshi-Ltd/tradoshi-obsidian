@@ -1,9 +1,10 @@
-import { Notice, Plugin, addIcon, normalizePath, type ObsidianProtocolData } from "obsidian";
+import { Notice, Plugin, TFile, TFolder, addIcon, type ObsidianProtocolData, type TAbstractFile } from "obsidian";
 import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
-import { appLink, overviewPath } from "./render";
-import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
-import { historyFrom, writeJournal } from "./sync";
+import { keyFromProperties, OVERVIEW_KEY } from "./plan";
+import { appLink, isValidTimeZone } from "./render";
+import { DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
+import { historyFrom, indexVault, renderContext, writeJournal } from "./sync";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
 
@@ -18,7 +19,23 @@ const TRADOSHI_ICON =
 	'<path d="M60 66 L54 77 L66 77 Z" fill="currentColor"/></g>';
 
 // Settings that change which notes are written: a full sync is needed afterwards.
-const RESYNC_KEYS = new Set(["tokenSecret", "folder", "history", "tradeNotes", "dailyNotes", "includeDemo", "includeArchived", "appLinks"]);
+const RESYNC_KEYS = new Set([
+	"tokenSecret",
+	"folder",
+	"history",
+	"tradeNotes",
+	"dailyNotes",
+	"includeDemo",
+	"includeArchived",
+	"appLinks",
+	"timeZone",
+	"dayStartHour",
+]);
+
+const systemTimeZone = (): string => {
+	const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	return tz && isValidTimeZone(tz) ? tz : "UTC";
+};
 
 export default class TradoshiPlugin extends Plugin {
 	settings: TradoshiSettings = { ...DEFAULT_SETTINGS };
@@ -26,6 +43,9 @@ export default class TradoshiPlugin extends Plugin {
 	private autoSyncTimer: number | null = null;
 	// A rejected token is reported once per session, not at every automatic sync.
 	private tokenWarned = false;
+	/** Identity of every Tradoshi note, by path, kept up to date as the trader edits the vault. */
+	private keyByPath = new Map<string, string>();
+	private saveTimer: number | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -49,11 +69,18 @@ export default class TradoshiPlugin extends Plugin {
 			name: "Open the web app",
 			callback: () => window.open(this.link("command")),
 		});
+		this.addCommand({
+			id: "restore-deleted-notes",
+			name: "Restore deleted notes",
+			callback: () => void this.restoreDeletedNotes(),
+		});
 
 		// obsidian://tradoshi?token=… is opened by the "Connect Obsidian" button of the app.
 		this.registerObsidianProtocolHandler("tradoshi", (params) => this.onConnectLink(params));
 
 		this.app.workspace.onLayoutReady(() => {
+			this.keyByPath = indexVault(this.app).byPath;
+			this.watchVault();
 			if (this.settings.syncOnStartup && this.getToken()) void this.sync(false);
 		});
 		this.scheduleAutoSync();
@@ -61,6 +88,13 @@ export default class TradoshiPlugin extends Plugin {
 
 	async loadSettings(): Promise<void> {
 		this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) as Partial<TradoshiSettings> | null) };
+		if (!Array.isArray(this.settings.deletedKeys)) this.settings.deletedKeys = [];
+		// The time zone is taken from the computer once, then kept: a trader who moves,
+		// or opens the vault on a computer set to another zone, keeps the same days.
+		if (!this.settings.timeZone || !isValidTimeZone(this.settings.timeZone)) {
+			this.settings.timeZone = systemTimeZone();
+			await this.saveSettings();
+		}
 	}
 
 	async saveSettings(): Promise<void> {
@@ -68,6 +102,7 @@ export default class TradoshiPlugin extends Plugin {
 	}
 
 	async onSettingsChanged(key: string): Promise<void> {
+		if (key === "timeZone") this.settings.timeZone = this.settings.timeZone.trim();
 		if (RESYNC_KEYS.has(key)) {
 			this.settings.lastSync = null;
 			await this.saveSettings();
@@ -75,13 +110,70 @@ export default class TradoshiPlugin extends Plugin {
 		if (key === "autoSyncMinutes") this.scheduleAutoSync();
 	}
 
+	// ── What the trader does in the vault ──────────────────────────────────────
+
+	private watchVault(): void {
+		this.registerEvent(
+			this.app.metadataCache.on("changed", (file, _data, cache) => {
+				const key = keyFromProperties(cache.frontmatter);
+				if (key) this.keyByPath.set(file.path, key);
+				else this.keyByPath.delete(file.path);
+			}),
+		);
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => {
+				for (const [path, key] of this.entriesUnder(oldPath, file instanceof TFolder)) {
+					this.keyByPath.delete(path);
+					this.keyByPath.set(file.path + path.slice(oldPath.length), key);
+				}
+			}),
+		);
+		this.registerEvent(this.app.vault.on("delete", (file) => this.onDelete(file)));
+	}
+
+	private entriesUnder(path: string, isFolder: boolean): [string, string][] {
+		if (!isFolder) {
+			const key = this.keyByPath.get(path);
+			return key ? [[path, key]] : [];
+		}
+		return [...this.keyByPath].filter(([p]) => p.startsWith(path + "/"));
+	}
+
+	/** A note deleted by the trader is remembered, so the next sync does not bring it back. */
+	private onDelete(file: TAbstractFile): void {
+		const gone = this.entriesUnder(file.path, file instanceof TFolder || !(file instanceof TFile));
+		if (!gone.length) return;
+		const deleted = new Set(this.settings.deletedKeys);
+		for (const [path, key] of gone) {
+			this.keyByPath.delete(path);
+			if (key !== OVERVIEW_KEY) deleted.add(key);
+		}
+		this.settings.deletedKeys = [...deleted];
+		if (this.saveTimer !== null) window.clearTimeout(this.saveTimer);
+		this.saveTimer = window.setTimeout(() => {
+			this.saveTimer = null;
+			void this.saveSettings();
+		}, 1000);
+	}
+
+	async restoreDeletedNotes(): Promise<void> {
+		const count = this.settings.deletedKeys.length;
+		this.settings.deletedKeys = [];
+		this.settings.lastSync = null;
+		await this.saveSettings();
+		new Notice(count ? `Tradoshi: ${count} deleted notes will be written again.` : "Tradoshi: no deleted note to restore.");
+		if (count) await this.sync(true);
+	}
+
+	// ── Connection ────────────────────────────────────────────────────────────
+
 	private getToken(): string | null {
 		const token = this.app.secretStorage.getSecret(this.settings.tokenSecret || TOKEN_SECRET_ID);
 		return token && token.trim() ? token.trim() : null;
 	}
 
 	private link(campaign: string): string {
-		return appLink({ folder: "", appUrl: APP_URL, appLinks: true, tradeNotes: true, dailyNotes: true }, campaign);
+		return appLink(renderContext(this.settings), campaign);
 	}
 
 	private scheduleAutoSync(): void {
@@ -113,15 +205,25 @@ export default class TradoshiPlugin extends Plugin {
 		}).open();
 	}
 
+	private overviewFile(): TFile | null {
+		for (const [path, key] of this.keyByPath) {
+			if (key !== OVERVIEW_KEY) continue;
+			const file = this.app.vault.getFileByPath(path);
+			if (file) return file;
+		}
+		return null;
+	}
+
 	private async openOverview(): Promise<void> {
-		const path = overviewPath({ folder: normalizePath(this.settings.folder || "Tradoshi"), appUrl: APP_URL, appLinks: true, tradeNotes: true, dailyNotes: true });
-		const file = this.app.vault.getFileByPath(path);
+		const file = this.overviewFile();
 		if (!file) {
 			new Notice("Tradoshi: run a first sync to create the overview note.");
 			return;
 		}
 		await this.app.workspace.getLeaf(false).openFile(file);
 	}
+
+	// ── Sync ──────────────────────────────────────────────────────────────────
 
 	/**
 	 * Fetches the journal and writes the notes. An automatic sync first asks only
@@ -143,8 +245,7 @@ export default class TradoshiPlugin extends Plugin {
 			const clientVersion = this.manifest.version;
 			// The quick check is skipped when the overview note is gone: the trader may
 			// have deleted the folder, and "nothing changed" would never write it again.
-			const overview = overviewPath({ folder: normalizePath(this.settings.folder || "Tradoshi"), appUrl: APP_URL, appLinks: true, tradeNotes: true, dailyNotes: true });
-			if (!manual && this.settings.lastSync && this.app.vault.getFileByPath(overview)) {
+			if (!manual && this.settings.lastSync && this.overviewFile()) {
 				const delta = await fetchJournal(token, { from, since: this.settings.lastSync, clientVersion });
 				if (delta.accounts.every((a) => !a.changed) && delta.notes.length === 0) return;
 			}

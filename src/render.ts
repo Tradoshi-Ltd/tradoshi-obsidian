@@ -9,34 +9,100 @@ export const BLOCK_END = "%% tradoshi:end %%";
 
 export type Frontmatter = Record<string, string | number | boolean | string[] | null>;
 
+/** Where a note actually lives, so links follow notes the trader moved or renamed. */
+export interface LinkResolver {
+	/** Path of the note of a trade (without ".md"), or null when it has no note. */
+	trade(key: string): string | null;
+	/** Path of the note of a trading day (without ".md"), or null when it has no note. */
+	day(date: string): string | null;
+}
+
 export interface RenderContext {
 	folder: string;
 	appUrl: string;
 	appLinks: boolean;
 	tradeNotes: boolean;
 	dailyNotes: boolean;
+	/** IANA time zone of the journal, e.g. "Europe/Paris". */
+	timeZone: string;
+	/** Hour (0 to 23) at which a trading day starts, in the journal time zone. */
+	dayStartHour: number;
+	links?: LinkResolver;
 }
 
-const pad = (n: number): string => String(n).padStart(2, "0");
+// ── Time zone and trading day ───────────────────────────────────────────────
 
-/** Local calendar date (YYYY-MM-DD) of an ISO instant. */
-export function localDate(iso: string): string {
-	const d = new Date(iso);
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+function formatter(timeZone: string): Intl.DateTimeFormat {
+	let f = formatters.get(timeZone);
+	if (!f) {
+		f = new Intl.DateTimeFormat("en-CA", {
+			timeZone,
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			hourCycle: "h23",
+		});
+		formatters.set(timeZone, f);
+	}
+	return f;
 }
 
-/** Local date and time (YYYY-MM-DDTHH:mm), the format of a date-time property. */
-export function localDateTime(iso: string | null): string | null {
+/** True when the time zone name is one the runtime knows. */
+export function isValidTimeZone(timeZone: string): boolean {
+	try {
+		new Intl.DateTimeFormat("en-CA", { timeZone });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+interface Zoned {
+	date: string;
+	time: string;
+}
+
+/** Calendar date and wall-clock time of an instant in a time zone. */
+export function zoned(ms: number, timeZone: string): Zoned {
+	const parts: Record<string, string> = {};
+	for (const p of formatter(timeZone).formatToParts(new Date(ms))) parts[p.type] = p.value;
+	return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+}
+
+const toMs = (iso: string | null): number | null => {
 	if (!iso) return null;
-	const d = new Date(iso);
-	if (Number.isNaN(d.getTime())) return null;
-	return `${localDate(iso)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+	const ms = new Date(iso).getTime();
+	return Number.isNaN(ms) ? null : ms;
+};
+
+/** Date and time (YYYY-MM-DDTHH:mm) in the journal time zone, the format of a date-time property. */
+export function dateTime(ctx: RenderContext, iso: string | null): string | null {
+	const ms = toMs(iso);
+	if (ms === null) return null;
+	const z = zoned(ms, ctx.timeZone);
+	return `${z.date}T${z.time}`;
 }
 
-function localTime(iso: string | null): string {
-	if (!iso) return "";
-	const d = new Date(iso);
-	return Number.isNaN(d.getTime()) ? "" : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function clock(ctx: RenderContext, iso: string | null): string {
+	const ms = toMs(iso);
+	return ms === null ? "" : zoned(ms, ctx.timeZone).time;
+}
+
+/**
+ * The trading day an instant belongs to. A day that starts before noon (e.g. 6:00)
+ * gives the hours before it to the previous day; a day that starts in the evening
+ * (e.g. 23:00, the forex week) gives the hours after it to the next day.
+ */
+export function tradingDay(ctx: RenderContext, iso: string): string | null {
+	const ms = toMs(iso);
+	if (ms === null) return null;
+	const h = Math.min(Math.max(Math.trunc(ctx.dayStartHour) || 0, 0), 23);
+	const shift = h === 0 ? 0 : h < 12 ? -h : 24 - h;
+	return zoned(ms + shift * 3600000, ctx.timeZone).date;
 }
 
 /** The instant a trade belongs to: its close, or its open while still running. */
@@ -44,26 +110,36 @@ export function tradeInstant(t: ApiTrade): string | null {
 	return t.closeTime ?? t.openTime;
 }
 
+export function tradeDay(ctx: RenderContext, t: ApiTrade): string | null {
+	const when = tradeInstant(t);
+	return when ? tradingDay(ctx, when) : null;
+}
+
+/** Identity of a trade across syncs, stored in the note as `tradoshi_id`. */
+export function tradeKey(account: ApiAccount, t: ApiTrade): string {
+	return `${account.id}/${t.id}`;
+}
+
+// ── Formatting ──────────────────────────────────────────────────────────────
+
 export function money(value: number, currency: string): string {
 	const sign = value > 0 ? "+" : value < 0 ? "-" : "";
 	return `${sign}${Math.abs(value).toFixed(2)} ${currency}`;
 }
+
+const round = (n: number): number => Math.round(n * 100) / 100;
 
 // A "#" is dropped rather than replaced: "#BTCUSD" reads better as "BTCUSD" than "-BTCUSD".
 function cleanFileName(s: string): string {
 	return s.replace(/#/g, "").replace(/[\\/:*?"<>|^[\]]/g, "-").replace(/\s+/g, " ").trim();
 }
 
-/** Obsidian tags allow letters, digits, "-", "_" and "/", and cannot be numbers only. */
-export function toTag(label: string): string | null {
-	const tag = label
-		.trim()
-		.replace(/\s+/g, "-")
-		.replace(/[^\p{L}\p{N}_\-/]/gu, "")
-		.replace(/^\/+|\/+$/g, "");
-	if (!tag || /^\d+$/.test(tag)) return null;
-	return tag;
-}
+// A "#" followed by text is read as a tag by Obsidian: "#BTCUSD" in a heading or a
+// table would add a tag to the note. It is escaped wherever it is shown as text.
+const text = (s: string): string => s.replace(/#/g, "\\#");
+
+const cell = (v: string | number | null | undefined): string =>
+	v === null || v === undefined || v === "" ? "-" : text(String(v)).replace(/\|/g, "\\|");
 
 export function result(t: ApiTrade): "win" | "loss" | "breakeven" {
 	return t.pnl > 0 ? "win" : t.pnl < 0 ? "loss" : "breakeven";
@@ -74,16 +150,16 @@ function shortId(id: string): string {
 	return clean.length > 14 ? clean.slice(-12) : clean;
 }
 
-export function tradeBaseName(t: ApiTrade): string {
-	const when = tradeInstant(t);
-	const date = when ? localDate(when) : "undated";
-	return cleanFileName(`${date} ${t.symbol || "trade"} ${t.side} ${shortId(t.id)}`);
+// ── Paths ───────────────────────────────────────────────────────────────────
+
+export function tradeBaseName(ctx: RenderContext, t: ApiTrade): string {
+	return cleanFileName(`${tradeDay(ctx, t) ?? "undated"} ${t.symbol || "trade"} ${t.side} ${shortId(t.id)}`);
 }
 
+/** Where a new trade note is created. An existing note is found by its id, wherever it is. */
 export function tradePath(ctx: RenderContext, t: ApiTrade): string {
-	const when = tradeInstant(t);
-	const year = when ? localDate(when).slice(0, 4) : "undated";
-	return `${ctx.folder}/Trades/${year}/${tradeBaseName(t)}.md`;
+	const day = tradeDay(ctx, t);
+	return `${ctx.folder}/Trades/${day ? day.slice(0, 4) : "undated"}/${tradeBaseName(ctx, t)}.md`;
 }
 
 export function dayPath(ctx: RenderContext, date: string): string {
@@ -99,39 +175,44 @@ export function overviewPath(ctx: RenderContext): string {
 const withoutExtension = (path: string): string => path.replace(/\.md$/, "");
 
 export function dayLink(ctx: RenderContext, date: string): string {
-	return ctx.dailyNotes ? `[[${withoutExtension(dayPath(ctx, date))}|${date}]]` : date;
+	if (!ctx.dailyNotes) return date;
+	const target = ctx.links ? ctx.links.day(date) : withoutExtension(dayPath(ctx, date));
+	return target ? `[[${target}|${date}]]` : date;
 }
 
 /** Link to a trade note, written for a table cell (the pipe is escaped). */
-function tradeLinkInTable(ctx: RenderContext, t: ApiTrade): string {
+function tradeLinkInTable(ctx: RenderContext, t: ApiTrade, account: ApiAccount): string {
 	const label = `${t.symbol.replace(/[|[\]]/g, "")} ${t.side}`;
-	return ctx.tradeNotes ? `[[${withoutExtension(tradePath(ctx, t))}\\|${label}]]` : label;
+	if (!ctx.tradeNotes) return label;
+	const target = ctx.links ? ctx.links.trade(tradeKey(account, t)) : withoutExtension(tradePath(ctx, t));
+	return target ? `[[${target}\\|${label}]]` : label;
 }
 
-export function appLink(ctx: RenderContext, campaign: string, hash = "journal", extraQuery = ""): string {
+export function appLink(ctx: Pick<RenderContext, "appUrl">, campaign: string, hash = "journal", extraQuery = ""): string {
 	const extra = extraQuery ? `&${extraQuery}` : "";
 	return `${ctx.appUrl}/?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}${extra}${hash ? `#${hash}` : ""}`;
 }
 
 // ── Trade notes ─────────────────────────────────────────────────────────────
 
-/** Properties written by the plugin. Any other property in the note is left alone. */
-export function tradeFrontmatter(t: ApiTrade, account: ApiAccount): Frontmatter {
-	const tags = ["tradoshi/trade"];
-	for (const label of t.tags) {
-		const tag = toTag(label);
-		if (tag && !tags.includes(tag)) tags.push(tag);
-	}
+/**
+ * Properties written by the plugin. Any other property in the note is left alone.
+ * Tradoshi labels go to `tradoshi_tags`, replaced at every sync, so a label fixed
+ * in Tradoshi is fixed in the note too; `tags` belongs to the trader.
+ */
+export function tradeFrontmatter(ctx: RenderContext, t: ApiTrade, account: ApiAccount): Frontmatter {
 	return {
-		tradoshi_id: `${account.id}/${t.id}`,
+		tradoshi_id: tradeKey(account, t),
+		trading_day: tradeDay(ctx, t),
 		symbol: t.symbol,
 		side: t.side,
 		result: result(t),
 		pnl: round(t.pnl),
 		currency: account.currency,
 		r_multiple: t.rMultiple,
-		opened: localDateTime(t.openTime),
-		closed: localDateTime(t.closeTime),
+		opened: dateTime(ctx, t.openTime),
+		closed: dateTime(ctx, t.closeTime),
+		closed_utc: t.closeTime,
 		entry: t.entryPrice,
 		exit: t.exitPrice,
 		volume: t.volume,
@@ -144,29 +225,21 @@ export function tradeFrontmatter(t: ApiTrade, account: ApiAccount): Frontmatter 
 		emotion: t.emotion,
 		rating: t.rating,
 		followed_plan: t.followedPlan,
-		tags,
+		tradoshi_tags: t.tags.length ? [...t.tags] : null,
+		tags: ["tradoshi/trade"],
 	};
 }
 
-const round = (n: number): number => Math.round(n * 100) / 100;
-
-// A "#" followed by text is read as a tag by Obsidian: "#BTCUSD" in a heading or a
-// table would add a tag to the note. It is escaped wherever it is shown as text.
-const text = (s: string): string => s.replace(/#/g, "\\#");
-
-const cell = (v: string | number | null | undefined): string =>
-	v === null || v === undefined || v === "" ? "-" : text(String(v)).replace(/\|/g, "\\|");
-
 export function tradeBlock(ctx: RenderContext, t: ApiTrade, account: ApiAccount): string {
 	const lines: string[] = [];
-	const when = tradeInstant(t);
+	const day = tradeDay(ctx, t);
 	lines.push(`# ${text(t.symbol)} ${t.side}, ${money(t.pnl, account.currency)}`);
 	lines.push("");
-	if (when) lines.push(`Day: ${dayLink(ctx, localDate(when))}`, "");
+	if (day) lines.push(`Day: ${dayLink(ctx, day)}`, "");
 	lines.push("| | |", "|---|---|");
 	lines.push(`| Account | ${cell(account.name)}${account.broker ? ` (${cell(account.broker)})` : ""} |`);
-	lines.push(`| Opened | ${cell(localDateTime(t.openTime)?.replace("T", " "))} |`);
-	lines.push(`| Closed | ${cell(localDateTime(t.closeTime)?.replace("T", " "))} |`);
+	lines.push(`| Opened | ${cell(dateTime(ctx, t.openTime)?.replace("T", " "))} |`);
+	lines.push(`| Closed | ${cell(dateTime(ctx, t.closeTime)?.replace("T", " "))} |`);
 	lines.push(`| Entry, exit | ${cell(t.entryPrice)} → ${cell(t.exitPrice)} |`);
 	lines.push(`| Volume | ${cell(t.volume)} |`);
 	lines.push(`| Stop loss, take profit | ${cell(t.stopLoss)}, ${cell(t.takeProfit)} |`);
@@ -176,6 +249,7 @@ export function tradeBlock(ctx: RenderContext, t: ApiTrade, account: ApiAccount)
 	if (t.emotion) lines.push(`| Emotion | ${cell(t.emotion)} |`);
 	if (t.rating !== null) lines.push(`| Execution rating | ${t.rating} / 5 |`);
 	if (t.followedPlan !== null) lines.push(`| Followed the plan | ${t.followedPlan ? "yes" : "no"} |`);
+	if (t.tags.length) lines.push(`| Tradoshi tags | ${t.tags.map(cell).join(", ")} |`);
 	if (t.reviewNote) {
 		lines.push("", "## Review from Tradoshi", "", t.reviewNote.trim());
 	}
@@ -218,6 +292,7 @@ export function dayFrontmatter(date: string, items: TradeWithAccount[]): Frontma
 	const s = summarize(items);
 	const currencies = Object.keys(s.pnlByCurrency);
 	return {
+		tradoshi_day: date,
 		date,
 		trades: s.trades,
 		wins: s.wins,
@@ -240,7 +315,7 @@ export function dayBlock(ctx: RenderContext, date: string, items: TradeWithAccou
 		lines.push("| Time | Trade | Volume | P&L | R | Account |", "|---|---|---|---|---|---|");
 		for (const { trade, account } of sorted) {
 			lines.push(
-				`| ${localTime(tradeInstant(trade))} | ${tradeLinkInTable(ctx, trade)} | ${cell(trade.volume)} | ${money(trade.pnl, account.currency)} | ${trade.rMultiple === null ? "-" : trade.rMultiple} | ${cell(account.name)} |`,
+				`| ${clock(ctx, tradeInstant(trade))} | ${tradeLinkInTable(ctx, trade, account)} | ${cell(trade.volume)} | ${money(trade.pnl, account.currency)} | ${trade.rMultiple === null ? "-" : trade.rMultiple} | ${cell(account.name)} |`,
 			);
 		}
 	} else {
@@ -265,22 +340,22 @@ export function overviewBlock(
 	now: Date = new Date(),
 ): string {
 	const lines: string[] = [];
-	lines.push(`Last sync: ${localDateTime(generatedAt)?.replace("T", " ") ?? "-"}`, "");
+	lines.push(`Last sync: ${dateTime(ctx, generatedAt)?.replace("T", " ") ?? "-"}`, "");
 
 	lines.push("## Accounts", "", "| Account | Broker | Trades | Updated in Tradoshi |", "|---|---|---|---|");
 	for (const a of accounts) {
-		lines.push(`| ${cell(a.name)}${a.mode === "demo" ? " (demo)" : ""} | ${cell(a.broker)} | ${a.tradeCount} | ${cell(localDateTime(a.updatedAt)?.replace("T", " "))} |`);
+		lines.push(`| ${cell(a.name)}${a.mode === "demo" ? " (demo)" : ""} | ${cell(a.broker)} | ${a.tradeCount} | ${cell(dateTime(ctx, a.updatedAt)?.replace("T", " "))} |`);
 	}
 	if (!accounts.length) lines.push("| No account yet | - | 0 | - |");
 
-	const since = new Date(now.getTime() - 30 * 86400000).toISOString();
-	const recent = items.filter(({ trade }) => (tradeInstant(trade) ?? "") >= since);
+	const since = now.getTime() - 30 * 86400000;
+	const recent = items.filter(({ trade }) => (toMs(tradeInstant(trade)) ?? 0) >= since);
 	const s = summarize(recent);
 	const rate = winRate(s);
 	lines.push("", "## Last 30 days", "", "| Net P&L | Trades | Win rate |", "|---|---|---|");
 	lines.push(`| ${pnlText(s)} | ${s.trades} | ${rate === null ? "-" : `${rate} %`} |`);
 
-	const days = [...new Set(items.map(({ trade }) => tradeInstant(trade)).filter((x): x is string => !!x).map(localDate))]
+	const days = [...new Set(items.map(({ trade }) => tradeDay(ctx, trade)).filter((x): x is string => !!x))]
 		.sort()
 		.reverse()
 		.slice(0, 10);
@@ -343,8 +418,8 @@ export function replaceBlock(content: string, block: string): string | null {
 	return content.slice(0, start) + BLOCK_START + "\n" + block + "\n" + content.slice(end);
 }
 
-// Tags are shared with the trader: the plugin adds its own and never removes one,
-// so a tag written by hand on a trade note survives every sync.
+// `tags` is shared with the trader: the plugin adds its own and never removes one,
+// so a tag written by hand on a note survives every sync.
 function missingTags(have: unknown, wanted: string[]): string[] {
 	const current = Array.isArray(have) ? have.map(String) : typeof have === "string" ? have.split(/[,\s]+/) : [];
 	return wanted.filter((t) => !current.includes(t));
@@ -379,12 +454,11 @@ export function applyFrontmatter(front: Record<string, unknown>, wanted: Frontma
 	}
 }
 
-export function groupByDay(items: TradeWithAccount[]): Map<string, TradeWithAccount[]> {
+export function groupByDay(ctx: RenderContext, items: TradeWithAccount[]): Map<string, TradeWithAccount[]> {
 	const days = new Map<string, TradeWithAccount[]>();
 	for (const item of items) {
-		const when = tradeInstant(item.trade);
-		if (!when) continue;
-		const d = localDate(when);
+		const d = tradeDay(ctx, item.trade);
+		if (!d) continue;
 		const list = days.get(d);
 		if (list) list.push(item);
 		else days.set(d, [item]);

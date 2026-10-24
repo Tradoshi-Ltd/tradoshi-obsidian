@@ -1,6 +1,6 @@
 import { normalizePath, PluginSettingTab, type App, type SettingDefinitionItem } from "obsidian";
 import type TradoshiPlugin from "./main";
-import { appLink } from "./render";
+import { appLink, isValidTimeZone } from "./render";
 
 export const TOKEN_SECRET_ID = "tradoshi-access-token";
 
@@ -16,6 +16,12 @@ export interface TradoshiSettings {
 	appLinks: boolean;
 	syncOnStartup: boolean;
 	autoSyncMinutes: string;
+	/** IANA time zone of the journal. Set once from the computer, so moving does not shift any day. */
+	timeZone: string;
+	/** Hour, as a string from "0" to "23", at which a trading day starts. */
+	dayStartHour: string;
+	/** Identities of the notes the trader deleted: they are not written again. */
+	deletedKeys: string[];
 	/** Server time of the last complete sync, used to ask only for what changed. */
 	lastSync: string | null;
 }
@@ -31,8 +37,15 @@ export const DEFAULT_SETTINGS: TradoshiSettings = {
 	appLinks: true,
 	syncOnStartup: true,
 	autoSyncMinutes: "60",
+	timeZone: "",
+	dayStartHour: "0",
+	deletedKeys: [],
 	lastSync: null,
 };
+
+const HOURS: Record<string, string> = Object.fromEntries(
+	Array.from({ length: 24 }, (_, h) => [String(h), h === 0 ? "Midnight (calendar day)" : `${String(h).padStart(2, "0")}:00`]),
+);
 
 export const APP_URL = "https://app.tradoshi.com";
 
@@ -117,6 +130,27 @@ export class TradoshiSettingTab extends PluginSettingTab {
 			},
 			{
 				type: "group",
+				heading: "Trading day",
+				items: [
+					{
+						name: "Time zone",
+						desc: "Dates and times of your notes use this time zone, whatever the time zone of the computer. Example: Europe/Paris, America/New_York, Pacific/Tahiti.",
+						control: {
+							type: "text",
+							key: "timeZone",
+							placeholder: "Europe/Paris",
+							validate: (value: string) => (isValidTimeZone(value.trim()) ? undefined : "Unknown time zone."),
+						},
+					},
+					{
+						name: "A trading day starts at",
+						desc: "Trades closed before this hour belong to the previous day when it is in the morning, and to the next day when it is in the evening (23:00 follows the forex week).",
+						control: { type: "dropdown", key: "dayStartHour", defaultValue: "0", options: HOURS },
+					},
+				],
+			},
+			{
+				type: "group",
 				heading: "Sync",
 				items: [
 					{
@@ -136,6 +170,11 @@ export class TradoshiSettingTab extends PluginSettingTab {
 						name: "Sync now",
 						desc: "Fetches your journal and updates the notes.",
 						action: () => void this.plugin.sync(true),
+					},
+					{
+						name: "Restore deleted notes",
+						desc: "Notes you delete are not written again. This brings them all back at the next sync.",
+						action: () => void this.plugin.restoreDeletedNotes(),
 					},
 				],
 			},

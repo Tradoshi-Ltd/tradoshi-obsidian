@@ -6,10 +6,12 @@ The plugin reads your [Tradoshi](https://tradoshi.com) journal and writes it int
 
 ## What you get
 
-- **A note per trade**, with its properties: symbol, side, result, net P&L, R multiple, entry and exit, stop loss and take profit, fees, account, emotion, execution rating, whether you followed your plan, and your Tradoshi tags.
+- **A note per trade**, with its properties: symbol, side, result, net P&L, R multiple, entry and exit, stop loss and take profit, fees, account, emotion, execution rating, whether you followed your plan, and your Tradoshi tags (`tradoshi_tags`).
 - **A note per trading day**, with the net P&L, the win rate and a table of the day's trades linked to their notes, plus the day notes you wrote in Tradoshi.
 - **An overview note** with your accounts, the last 30 days and links to your recent days.
-- **Room for your own thinking.** Every note ends with a "My notes" section. The plugin only updates the block between `%% tradoshi:start %%` and `%% tradoshi:end %%` and its own properties. What you write elsewhere in the note, and the tags you add, are never touched. The plugin never deletes a note.
+- **Room for your own thinking.** Every note ends with a "My notes" section. The plugin only updates the block between `%% tradoshi:start %%` and `%% tradoshi:end %%` and its own properties. What you write elsewhere in the note, and the tags you add in `tags`, are never touched.
+- **Your notes stay where you put them.** Each note carries its identity (`tradoshi_id`, `tradoshi_day`): rename it or move it anywhere in the vault and it keeps receiving its updates there. The plugin never renames, moves or deletes a note, and a note you delete is not written again (the command **Restore deleted notes** brings them back).
+- **Your time zone, your trading day.** Dates and times use the time zone of the journal, set once from your computer, so traveling or moving does not shift a single day. A trading day can start at the hour you choose, for example 23:00 to follow the forex week.
 
 Properties work with the core Bases plugin and with Dataview, so you can build your own views of your trading.
 
@@ -34,10 +36,12 @@ Don't have an account yet? [Create a free Tradoshi account](https://app.tradoshi
 | Include demo accounts | Off |
 | Include archived accounts | Off |
 | Links back to Tradoshi | On |
+| Time zone | The one of your computer, the day you install the plugin |
+| A trading day starts at | Midnight |
 | Sync when the vault opens | On |
 | Sync automatically | Every hour |
 
-Commands: **Sync journal now**, **Open the overview note**, **Open the web app**.
+Commands: **Sync journal now**, **Open the overview note**, **Open the web app**, **Restore deleted notes**.
 
 ## When do new trades show up?
 
