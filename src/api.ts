@@ -61,3 +61,11 @@ export async function fetchJournal(token: string, options: FetchOptions): Promis
 	}
 	return data;
 }
+
+/** Whether the trader approved the vault in Tradoshi yet; the sealed token once he did. */
+export async function fetchPairing(id: string): Promise<{ status: "pending" } | { status: "ready"; sealed: string }> {
+	const response = await requestUrl({ url: `${API_URL}?appairage=${encodeURIComponent(id)}`, method: "GET", throw: false });
+	if (response.status !== 200) throw new TradoshiError(`Tradoshi answered with an error (${response.status}).`, "pairing", response.status);
+	const body = response.json as { status?: string; sealed?: string };
+	return body?.status === "ready" && typeof body.sealed === "string" ? { status: "ready", sealed: body.sealed } : { status: "pending" };
+}

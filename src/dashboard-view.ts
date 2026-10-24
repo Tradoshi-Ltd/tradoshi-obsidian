@@ -222,8 +222,9 @@ export class DashboardView extends ItemView {
 		left.createEl("strong", { text: t("sampleTitle") });
 		left.createEl("p", { text: t("sampleText") });
 		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
-		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => window.open(this.plugin.signupLink("dashboard_sample")));
+		buttons.createEl("button", { cls: "mod-cta", text: t("connect") }).addEventListener("click", () => this.plugin.connect("dashboard_sample"));
 		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		if (this.plugin.pairingPending()) left.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 
 		const flow = box.createDiv({ cls: "tradoshi-flow" });
 		flow.createDiv({ cls: "tradoshi-flow-title", text: t("dataTitle") });
@@ -253,6 +254,7 @@ export class DashboardView extends ItemView {
 		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
 		buttons.createEl("button", { cls: "mod-cta", text: t("connectBroker") }).addEventListener("click", () => window.open(this.plugin.brokerLink("dashboard_empty")));
 		buttons.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
+		if (this.plugin.pairingPending()) left.createEl("p", { cls: "tradoshi-pair-waiting", text: t("pairWaiting") });
 		left.createEl("a", { cls: "tradoshi-guide-link", text: t("howItWorks"), href: guideLink(language(), "dashboard_empty") });
 	}
 

@@ -216,7 +216,7 @@ export class TradeLogView extends ItemView {
 		left.createEl("strong", { text: lt("emptyTitle") });
 		left.createEl("p", { text: lt("emptyText") });
 		const buttons = left.createDiv({ cls: "tradoshi-sample-buttons" });
-		if (!this.plugin.isConnected()) buttons.createEl("button", { cls: "mod-cta", text: lt("connect") }).addEventListener("click", () => window.open(this.plugin.signupLink("trade_log")));
+		if (!this.plugin.isConnected()) buttons.createEl("button", { cls: "mod-cta", text: lt("connect") }).addEventListener("click", () => this.plugin.connect("trade_log"));
 		else buttons.createEl("button", { cls: "mod-cta", text: lt("connectBroker") }).addEventListener("click", () => window.open(this.plugin.brokerLink("trade_log")));
 		buttons.createEl("button", { text: lt("importStatement") }).addEventListener("click", () => this.plugin.openImport());
 		buttons.createEl("button", { text: lt("addTrade") }).addEventListener("click", () => openManualTrade(this.plugin));

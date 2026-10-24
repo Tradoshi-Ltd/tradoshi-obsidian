@@ -159,7 +159,7 @@ export class ManualTradeModal extends Modal {
 				b
 					.setButtonText(mt("connect"))
 					.setCta()
-					.onClick(() => window.open(this.plugin.signupLink("manual_trade"))),
+					.onClick(() => this.plugin.connect("manual_trade")),
 			);
 			return;
 		}

@@ -90,13 +90,11 @@ Every step, with screenshots: [Tradoshi for Obsidian](https://tradoshi.com/en/ob
 
 ## Connect in one click
 
-1. Install the plugin and enable it.
-2. In Tradoshi, open **Settings, Obsidian** and click **Connect Obsidian**. The vault opens and asks you to confirm.
-3. The first sync starts right away.
+1. Install the plugin and enable it. The dashboard opens with a sample journal.
+2. Click **Connect my free account**. Tradoshi opens in your browser: sign in, or create your free account.
+3. Click **Approve Obsidian**. Back in Obsidian, the vault is connected on its own.
 
-You can also create a token in Tradoshi and paste it in the plugin settings, under **Access token**.
-
-Don't have an account yet? [Create a free Tradoshi account](https://app.tradoshi.com/?utm_source=obsidian&utm_medium=readme&utm_campaign=signup).
+You can also create a token in Tradoshi (**Settings, Obsidian**) and paste it in the plugin settings, under **Access token**.
 
 ## Commands
 
@@ -127,7 +125,7 @@ An automatic sync asks Tradoshi only for what changed and writes only those acco
 
 - **Account required.** The plugin needs a free Tradoshi account and an access token created in Tradoshi, also to import a file or to enter a trade by hand. Those trades are still kept on your computer only: the account identifies you, it does not receive them.
 - **Payment.** The plugin is free to install, and a Tradoshi account is free. Some features need a paid Tradoshi plan, as on the pricing page: sync with Tradoshi, review questions, discipline and goals (Essential), prop firm challenges and backtest trades (Pro), session mode (Premium). See [What each plan opens](#what-each-plan-opens). Every new account starts with a free trial, without a card.
-- **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal and the plan of your account. It sends your access token and the plugin version. Nothing from your vault is ever sent.
+- **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal and the plan of your account. It sends your access token and the plugin version. While you connect a vault, it also asks Tradoshi every few seconds whether you approved it; the access token then arrives encrypted with a key that never leaves the vault. Nothing from your vault is ever sent.
 - **Read only.** The access token can only read your journal. It cannot change your journal, place trades, reach your broker credentials or your billing. You can revoke it at any time in Tradoshi.
 - **Where the token is kept.** In the secret storage of Obsidian, not in a plain settings file.
 - **Server-side records.** For each token, Tradoshi records when it was last used, how many requests it made and the plugin version, to show them to you in Tradoshi and to apply a rate limit. There is no telemetry in the plugin. See the [privacy policy](https://tradoshi.com/en/privacy).

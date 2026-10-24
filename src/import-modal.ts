@@ -50,7 +50,7 @@ export class ImportModal extends Modal {
 				b
 					.setButtonText(t("connect"))
 					.setCta()
-					.onClick(() => window.open(this.plugin.signupLink("import"))),
+					.onClick(() => this.plugin.connect("import")),
 			);
 			return;
 		}

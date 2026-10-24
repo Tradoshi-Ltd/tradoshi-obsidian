@@ -197,3 +197,4 @@
 .tradoshi-lock .tradoshi-sample-buttons { margin: var(--size-2-3) 0; }
 .tradoshi-lock.is-compact { border: none; background: none; padding: 0; margin: var(--size-2-2) 0 0; }
 .tradoshi-lock.is-compact .tradoshi-strong { font-weight: var(--font-normal); color: var(--text-muted); font-size: var(--font-ui-small); }
+.tradoshi-pair-waiting { color: var(--text-accent); font-size: var(--font-ui-small); margin-top: var(--size-2-3); }

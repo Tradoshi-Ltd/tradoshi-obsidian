@@ -1,5 +1,5 @@
 import { Notice, Plugin, TFile, TFolder, addIcon, type ObsidianProtocolData, type TAbstractFile } from "obsidian";
-import { fetchJournal, TradoshiError } from "./api";
+import { fetchJournal, fetchPairing, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
 import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
 import { NO_FILTERS } from "./filters";
@@ -7,6 +7,7 @@ import { ImportModal } from "./import-modal";
 import { t } from "./i18n";
 import { modules } from "./modules";
 import { normalizeOffer, offerEvents, openLock } from "./offer";
+import { newPairing, openSealed } from "./pairing";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -14,6 +15,8 @@ import { historyFrom, indexVault, renderContext, writeImport, writeJournal } fro
 import type { ApiDayNote, ApiTrade, JournalResponse } from "./types";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
+/** A one-click connection waits this long for the trader's approval (sign-up and email included). */
+const PAIRING_LIFETIME = 2 * 3600 * 1000;
 /** An automatic sync downloads the whole journal at least this often. */
 const FULL_SYNC_EVERY = 24 * 3600 * 1000;
 
@@ -54,6 +57,9 @@ export default class TradoshiPlugin extends Plugin {
 	private tokenWarned = false;
 	/** The trader was told once this session that sync needs the Essential plan. */
 	private planWarned = false;
+	/** A vault waiting for the trader to approve it in Tradoshi (one-click connection). */
+	private pairing: { id: string; key: CryptoKey; started: number } | null = null;
+	private pairingTimer: number | null = null;
 	/** Identity of every Tradoshi note, by path, kept up to date as the trader edits the vault. */
 	private keyByPath = new Map<string, string>();
 	private saveTimer: number | null = null;
@@ -103,6 +109,9 @@ export default class TradoshiPlugin extends Plugin {
 
 		// obsidian://tradoshi?token=… is opened by the "Connect Obsidian" button of the app.
 		this.registerObsidianProtocolHandler("tradoshi", (params) => this.onConnectLink(params));
+		this.register(() => {
+			if (this.pairingTimer !== null) window.clearTimeout(this.pairingTimer);
+		});
 
 		for (const m of modules()) m.load(this);
 
@@ -217,6 +226,82 @@ export default class TradoshiPlugin extends Plugin {
 		return APP_URL;
 	}
 
+	/**
+	 * Connects this vault in one click: Tradoshi opens in the browser, the trader signs in
+	 * or creates a free account and approves the vault, and it connects by itself.
+	 */
+	connect(campaign: string): void {
+		void (async () => {
+			let pairing;
+			try {
+				pairing = await newPairing();
+			} catch {
+				// No Web Crypto here: the page where a token is created by hand.
+				window.open(this.signupLink(campaign));
+				return;
+			}
+			this.pairing = { id: pairing.id, key: pairing.privateKey, started: Date.now() };
+			window.open(appLink(renderContext(this.settings), campaign, "params", `section=obsidian&obsidian_pair=${pairing.id}&obsidian_key=${pairing.publicKey}`));
+			new Notice(`Tradoshi: ${t("nPairWaiting")}`, 10000);
+			this.refreshDashboards();
+			this.schedulePairing(3000);
+		})();
+	}
+
+	/** A connection started from this vault is waiting for the trader's approval. */
+	pairingPending(): boolean {
+		return this.pairing !== null;
+	}
+
+	private schedulePairing(delay: number): void {
+		if (this.pairingTimer !== null) window.clearTimeout(this.pairingTimer);
+		this.pairingTimer = window.setTimeout(() => void this.pollPairing(), delay);
+	}
+
+	private async pollPairing(): Promise<void> {
+		this.pairingTimer = null;
+		const pairing = this.pairing;
+		if (!pairing) return;
+		const age = Date.now() - pairing.started;
+		if (age > PAIRING_LIFETIME) {
+			this.pairing = null;
+			new Notice(`Tradoshi: ${t("nPairExpired")}`, 10000);
+			this.refreshDashboards();
+			return;
+		}
+		try {
+			const answer = await fetchPairing(pairing.id);
+			if (answer.status === "ready") {
+				const token = (await openSealed(pairing.key, answer.sealed)).trim();
+				if (this.pairing !== pairing) return;
+				this.pairing = null;
+				if (TOKEN_PATTERN.test(token)) await this.useToken(token);
+				else new Notice(`Tradoshi: ${t("nBadLink")}`);
+				return;
+			}
+		} catch (e) {
+			// A network hiccup: the next try will do.
+			console.error("Tradoshi pairing", e);
+		}
+		// Every 3 seconds while the trader is likely in the browser, then every 15.
+		if (this.pairing === pairing) this.schedulePairing(age < 10 * 60000 ? 3000 : 15000);
+	}
+
+	/** Keeps the access token of this vault, then brings the journal in. */
+	private async useToken(token: string): Promise<void> {
+		this.app.secretStorage.setSecret(TOKEN_SECRET_ID, token);
+		this.settings.tokenSecret = TOKEN_SECRET_ID;
+		this.settings.lastSync = null;
+		this.settings.offer = null;
+		this.tokenWarned = false;
+		this.planWarned = false;
+		await this.saveSettings();
+		new Notice(`Tradoshi: ${t("nConnected")}`);
+		await this.openDashboard();
+		await this.sync(true);
+		this.refreshDashboards();
+	}
+
 	/** Sign-up link of the web app, counted as coming from Obsidian. */
 	signupLink(campaign: string): string {
 		return appLink(renderContext(this.settings), campaign, "params", "section=obsidian");
@@ -307,20 +392,7 @@ export default class TradoshiPlugin extends Plugin {
 		// The dashboard first: it brings the main window forward, so the confirmation opens there
 		// and not in a detached window, with the sample journal behind it.
 		void this.openDashboard().then(() => {
-			new ConnectModal(this.app, this.settings.folder, () => {
-				void (async () => {
-					this.app.secretStorage.setSecret(TOKEN_SECRET_ID, token);
-					this.settings.tokenSecret = TOKEN_SECRET_ID;
-					this.settings.lastSync = null;
-					this.settings.offer = null;
-					this.tokenWarned = false;
-					this.planWarned = false;
-					await this.saveSettings();
-					new Notice(`Tradoshi: ${t("nConnected")}`);
-					await this.sync(true);
-					await this.openDashboard();
-				})();
-			}).open();
+			new ConnectModal(this.app, this.settings.folder, () => void this.useToken(token)).open();
 		});
 	}
 

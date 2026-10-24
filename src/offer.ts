@@ -115,6 +115,6 @@ export function lockPanel(el: HTMLElement, plugin: TradoshiPlugin, need: PaidOff
 		buttons.createEl("button", { text: ot("sync") }).addEventListener("click", () => void plugin.sync(true));
 		box.createEl("p", { cls: "tradoshi-muted tradoshi-small", text: ot("changed") });
 	} else {
-		buttons.createEl("button", { cls: "mod-cta", text: ot("connect") }).addEventListener("click", () => window.open(plugin.signupLink(`plan_${need}`)));
+		buttons.createEl("button", { cls: "mod-cta", text: ot("connect") }).addEventListener("click", () => plugin.connect(`plan_${need}`));
 	}
 }
