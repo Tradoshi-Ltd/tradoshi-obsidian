@@ -10,9 +10,11 @@ import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
 import { historyFrom, indexVault, renderContext, writeImport, writeJournal } from "./sync";
-import type { ApiDayNote, ApiTrade } from "./types";
+import type { ApiDayNote, ApiTrade, JournalResponse } from "./types";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
+/** An automatic sync downloads the whole journal at least this often. */
+const FULL_SYNC_EVERY = 24 * 3600 * 1000;
 
 // The Tradoshi owl, drawn in the current text color like the core ribbon icons.
 const TRADOSHI_ICON =
@@ -54,6 +56,8 @@ export default class TradoshiPlugin extends Plugin {
 	private saveTimer: number | null = null;
 	/** Day notes written in Tradoshi, from the last sync, kept when an imported file rebuilds the days. */
 	private lastDayNotes: ApiDayNote[] = [];
+	/** When this session last downloaded the whole journal; null until it has. */
+	private lastFullSync: number | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -336,15 +340,29 @@ export default class TradoshiPlugin extends Plugin {
 		try {
 			const from = historyFrom(this.settings.history);
 			const clientVersion = this.manifest.version;
+			let data: JournalResponse | null = null;
+			let stats: { created: number; updated: number };
 			// The quick check is skipped when the overview note is gone: the trader may
 			// have deleted the folder, and "nothing changed" would never write it again.
 			if (!manual && this.settings.lastSync && this.overviewFile()) {
 				const delta = await fetchJournal(token, { from, since: this.settings.lastSync, clientVersion });
 				if (delta.accounts.every((a) => !a.changed) && delta.notes.length === 0) return;
+				// Only what changed is downloaded and written. The first sync of a session,
+				// and one a day, stay complete: they bring the Tradoshi text of every day
+				// note, which a partial sync needs to rewrite a day without losing it.
+				if (this.lastFullSync && Date.now() - this.lastFullSync < FULL_SYNC_EVERY) data = delta;
 			}
-			const data = await fetchJournal(token, { from, since: null, clientVersion });
-			this.lastDayNotes = data.notes;
-			const stats = await writeJournal(this.app, data, this.settings);
+			if (data) {
+				const notes = new Map(this.lastDayNotes.map((n) => [n.date, n]));
+				for (const n of data.notes) notes.set(n.date, n);
+				this.lastDayNotes = [...notes.values()];
+				stats = await writeJournal(this.app, data, this.settings, this.lastDayNotes, { noteDates: data.notes.map((n) => n.date) });
+			} else {
+				data = await fetchJournal(token, { from, since: null, clientVersion });
+				this.lastDayNotes = data.notes;
+				stats = await writeJournal(this.app, data, this.settings);
+				this.lastFullSync = Date.now();
+			}
 			this.settings.tagCategories = Object.fromEntries(data.tags.map((tag) => [tag.name, tag.category ?? ""]));
 			this.settings.lastSync = data.generatedAt;
 			await this.saveSettings();

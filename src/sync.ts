@@ -127,6 +127,13 @@ interface Batch {
 	/** Day notes written in Tradoshi, by date. */
 	dayNotes: ApiDayNote[];
 	generatedAt: string;
+	/**
+	 * Only what changed since the last sync: the accounts that changed carry their
+	 * trades, the others none. The day notes rewritten are those of the days these
+	 * trades fall on, and of `noteDates`, the days whose note was edited in Tradoshi;
+	 * the others are left as they are.
+	 */
+	partial?: { noteDates: string[] };
 }
 
 /**
@@ -176,7 +183,8 @@ async function writeBatch(app: App, settings: TradoshiSettings, ctx: RenderConte
 		// A day note already in the vault whose trades moved to another day (time zone
 		// or day start changed) is kept and told it has no trades left.
 		for (const key of index.byKey.keys()) if (key.startsWith("day:")) dates.add(key.slice(4));
-		for (const date of [...dates].filter((d) => !from || d >= from).sort()) {
+		const touched = batch.partial ? new Set([...[...batchRecords.values()].map((r) => r.day), ...batch.partial.noteDates]) : null;
+		for (const date of [...dates].filter((d) => (!from || d >= from) && (!touched || touched.has(d))).sort()) {
 			dayActions.set(date, vault.plan(dayNoteKey(date), dayPath(ctx, date), deleted));
 		}
 	}
@@ -223,12 +231,21 @@ async function writeBatch(app: App, settings: TradoshiSettings, ctx: RenderConte
 	return writer.stats;
 }
 
-/** Writes the journal read from Tradoshi. */
-export async function writeJournal(app: App, data: JournalResponse, settings: TradoshiSettings): Promise<WriteStats> {
+/**
+ * Writes the journal read from Tradoshi. With `partial`, `data` holds only what changed,
+ * `dayNotes` every day note known so far, and `partial.noteDates` the days edited.
+ */
+export async function writeJournal(
+	app: App,
+	data: JournalResponse,
+	settings: TradoshiSettings,
+	dayNotes: ApiDayNote[] = data.notes,
+	partial?: { noteDates: string[] },
+): Promise<WriteStats> {
 	const accounts = data.accounts.filter(
 		(a) => (settings.includeDemo || a.mode !== "demo") && (settings.includeArchived || !a.archived),
 	);
-	return writeBatch(app, settings, renderContext(settings, data.appUrl || APP_URL), { accounts, dayNotes: data.notes, generatedAt: data.generatedAt });
+	return writeBatch(app, settings, renderContext(settings, data.appUrl || APP_URL), { accounts, dayNotes, generatedAt: data.generatedAt, partial });
 }
 
 const slug = (s: string): string =>
