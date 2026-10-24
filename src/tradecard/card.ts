@@ -1,4 +1,4 @@
-import { MarkdownRenderChild, Modal, TFile, type App, type FrontMatterCache } from "obsidian";
+import { MarkdownRenderChild, Modal, Notice, TFile, type App, type FrontMatterCache } from "obsidian";
 import { emotionLabel } from "../i18n";
 import { dateLabel, duration, money, num, sign } from "../format";
 import { tradesFromVault } from "../journal-data";
@@ -34,6 +34,20 @@ export interface Media {
 	src: string;
 	video: boolean;
 	name: string;
+	/** Vault path of the file, or its address: the key of its annotation. */
+	key: string;
+}
+
+/** Tags and a note the trader gives to one chart or video, apart from the trade's own tags. */
+export interface MediaNote {
+	tags: string[];
+	note: string;
+}
+
+export const MEDIA_NOTES = "media-notes";
+
+export function mediaNotes(plugin: TradoshiPlugin): Record<string, MediaNote> {
+	return plugin.moduleData<Record<string, MediaNote>>(MEDIA_NOTES, {});
 }
 
 /** Images and videos embedded in the note, in the order they appear. */
@@ -42,13 +56,13 @@ export function mediaOf(app: App, file: TFile): Media[] {
 	for (const e of app.metadataCache.getFileCache(file)?.embeds ?? []) {
 		if (/^https?:\/\//.test(e.link)) {
 			const ext = e.link.split("?")[0].split(".").pop()?.toLowerCase() ?? "";
-			if (IMAGE.has(ext) || VIDEO.has(ext)) out.push({ src: e.link, video: VIDEO.has(ext), name: e.link });
+			if (IMAGE.has(ext) || VIDEO.has(ext)) out.push({ src: e.link, video: VIDEO.has(ext), name: e.link, key: e.link });
 			continue;
 		}
 		const dest = app.metadataCache.getFirstLinkpathDest(e.link.split("#")[0], file.path);
 		if (!dest) continue;
 		const ext = dest.extension.toLowerCase();
-		if (IMAGE.has(ext) || VIDEO.has(ext)) out.push({ src: app.vault.getResourcePath(dest), video: VIDEO.has(ext), name: dest.basename });
+		if (IMAGE.has(ext) || VIDEO.has(ext)) out.push({ src: app.vault.getResourcePath(dest), video: VIDEO.has(ext), name: dest.basename, key: dest.path });
 	}
 	return out;
 }
@@ -58,6 +72,9 @@ export class MediaModal extends Modal {
 		app: App,
 		private readonly items: Media[],
 		private index: number,
+		/** With the plugin, each item can be annotated. */
+		private readonly plugin: TradoshiPlugin | null = null,
+		private readonly onAnnotated: () => void = () => {},
 	) {
 		super(app);
 	}
@@ -80,12 +97,40 @@ export class MediaModal extends Modal {
 		const m = this.items[this.index];
 		if (m.video) el.createEl("video", { attr: { src: m.src, controls: "" }, cls: "tradoshi-media-full" });
 		else el.createEl("img", { attr: { src: m.src, alt: m.name }, cls: "tradoshi-media-full" });
+		if (this.plugin) this.drawAnnotation(el, m, this.plugin);
 		if (this.items.length > 1) {
 			const nav = el.createDiv({ cls: "tradoshi-tc-nav" });
 			nav.createEl("button", { text: "‹" }).addEventListener("click", () => this.go(-1));
 			nav.createSpan({ cls: "tradoshi-muted", text: `${this.index + 1} / ${this.items.length}` });
 			nav.createEl("button", { text: "›" }).addEventListener("click", () => this.go(1));
 		}
+	}
+
+	private drawAnnotation(el: HTMLElement, m: Media, plugin: TradoshiPlugin): void {
+		const all = mediaNotes(plugin);
+		const current: MediaNote = all[m.key] ?? { tags: [], note: "" };
+		const box = el.createDiv({ cls: "tradoshi-media-note" });
+		const tags = box.createEl("input", { attr: { type: "text", placeholder: tc("mediaTagsHint"), "aria-label": tc("mediaTags") } });
+		tags.value = current.tags.join(", ");
+		const note = box.createEl("textarea", { attr: { rows: 2, placeholder: tc("mediaNoteHint"), "aria-label": tc("mediaNote") } });
+		note.value = current.note;
+		const save = box.createEl("button", { cls: "mod-cta", text: tc("mediaSave") });
+		save.addEventListener("click", () => {
+			const next: MediaNote = {
+				tags: tags.value
+					.split(",")
+					.map((x) => x.trim())
+					.filter(Boolean),
+				note: note.value.trim(),
+			};
+			const updated = { ...mediaNotes(plugin) };
+			if (next.tags.length || next.note) updated[m.key] = next;
+			else delete updated[m.key];
+			void plugin.saveModuleData(MEDIA_NOTES, updated).then(() => {
+				new Notice(tc("mediaSaved"));
+				this.onAnnotated();
+			});
+		});
 	}
 
 	onClose(): void {
@@ -300,7 +345,9 @@ export class TradeCard extends MarkdownRenderChild {
 			const b = strip.createEl("button", { cls: "tradoshi-tc-thumb", attr: { "aria-label": m.name } });
 			if (m.video) b.createEl("video", { attr: { src: m.src, muted: "", preload: "metadata" } });
 			else b.createEl("img", { attr: { src: m.src, alt: m.name, loading: "lazy" } });
-			b.addEventListener("click", () => new MediaModal(this.app, items, i).open());
+			b.addEventListener("click", () => new MediaModal(this.app, items, i, this.plugin).open());
+			const ann = mediaNotes(this.plugin)[m.key];
+			if (ann?.tags.length) b.setAttr("title", ann.tags.join(", "));
 		});
 	}
 

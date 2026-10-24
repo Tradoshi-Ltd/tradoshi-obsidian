@@ -3,7 +3,7 @@ import { FilterModal } from "../filter-modal";
 import { activeFilterCount, applyFilters, NO_FILTERS, type TradeFilters } from "../filters";
 import { dateLabel, money, percent, sign } from "../format";
 import type TradoshiPlugin from "../main";
-import { MediaModal, mediaOf } from "../tradecard/card";
+import { MediaModal, mediaNotes, mediaOf } from "../tradecard/card";
 import { addOwnTag, ConfirmModal, deleteNotes, NamePrompt, setReviewed } from "./batch";
 import { COLUMNS, DEFAULT_COLUMNS, type Column } from "./columns";
 import { logTrades, type LogTrade, type TradeKind } from "./data";
@@ -26,6 +26,8 @@ interface LogSettings {
 	sort: { col: string; dir: "asc" | "desc" };
 	gallerySort: "newest" | "oldest" | "best" | "worst";
 	gallerySize: "small" | "medium" | "large";
+	/** Only the media carrying this tag of their own; empty for all. */
+	mediaTag: string;
 }
 
 const DEFAULTS: LogSettings = {
@@ -41,6 +43,7 @@ const DEFAULTS: LogSettings = {
 	sort: { col: "date", dir: "desc" },
 	gallerySort: "newest",
 	gallerySize: "medium",
+	mediaTag: "",
 };
 
 const todayKey = (): string => {
@@ -252,6 +255,8 @@ export class TradeLogView extends ItemView {
 		} else {
 			select("", { newest: lt("sortNewest"), oldest: lt("sortOldest"), best: lt("sortBest"), worst: lt("sortWorst") }, s.gallerySort, (v) => void this.set({ gallerySort: v as LogSettings["gallerySort"] }));
 			select("", { small: lt("small"), medium: lt("medium"), large: lt("large") }, s.gallerySize, (v) => void this.set({ gallerySize: v as LogSettings["gallerySize"] }));
+			const mediaTags = [...new Set(Object.values(mediaNotes(this.plugin)).flatMap((n) => n.tags))].sort((a, b) => a.localeCompare(b));
+			if (mediaTags.length) select(lt("mediaTag"), { "": lt("allMedia"), ...Object.fromEntries(mediaTags.map((x) => [x, `#${x}`])) }, s.mediaTag, (v) => void this.set({ mediaTag: v }));
 		}
 	}
 
@@ -396,14 +401,20 @@ export class TradeLogView extends ItemView {
 		for (const t of order) {
 			const file = this.app.vault.getFileByPath(t.path);
 			if (!(file instanceof TFile)) continue;
-			const media = mediaOf(this.app, file);
+			const notes = mediaNotes(this.plugin);
+			const media = mediaOf(this.app, file).filter((m) => !s.mediaTag || (notes[m.key]?.tags ?? []).includes(s.mediaTag));
 			if (!media.length) continue;
 			const card = grid.createDiv({ cls: "tradoshi-gallery-card" });
 			const shot = card.createEl("button", { cls: "tradoshi-gallery-shot", attr: { "aria-label": t.symbol } });
 			if (media[0].video) shot.createEl("video", { attr: { src: media[0].src, muted: "", preload: "metadata" } });
 			else shot.createEl("img", { attr: { src: media[0].src, alt: media[0].name, loading: "lazy" } });
 			if (media.length > 1) shot.createSpan({ cls: "tradoshi-gallery-count", text: `+${media.length - 1}` });
-			shot.addEventListener("click", () => new MediaModal(this.app, media, 0).open());
+			shot.addEventListener("click", () => new MediaModal(this.app, media, 0, this.plugin, () => this.draw()).open());
+			const firstTags = notes[media[0].key]?.tags ?? [];
+			if (firstTags.length) {
+				const chips = card.createDiv({ cls: "tradoshi-gallery-tags" });
+				for (const x of firstTags) chips.createSpan({ cls: "tradoshi-tag", text: x });
+			}
 			const meta = card.createDiv({ cls: "tradoshi-gallery-meta" });
 			const left = meta.createDiv();
 			left.createDiv({ cls: "tradoshi-strong", text: `${t.symbol} ${lt(t.side)}` });

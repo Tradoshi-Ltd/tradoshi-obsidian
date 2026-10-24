@@ -70,3 +70,9 @@
 }
 
 .tradoshi-tc-cols.is-single { grid-template-columns: minmax(0, 1fr); }
+
+/* Annotation of one chart, under it in the fullscreen viewer */
+.tradoshi-media-note { display: grid; gap: var(--size-2-2); max-width: 720px; margin: var(--size-4-2) auto 0; }
+.tradoshi-media-note input, .tradoshi-media-note textarea { width: 100%; }
+.tradoshi-media-note button { justify-self: end; }
+.tradoshi-gallery-tags { display: flex; flex-wrap: wrap; gap: var(--size-2-1); padding: 0 var(--size-4-2) var(--size-2-2); }
