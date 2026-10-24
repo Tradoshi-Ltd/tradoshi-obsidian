@@ -1,0 +1,70 @@
+/* Trade card, at the top of each trade note */
+.tradoshi-tc {
+	--tradoshi-gain: #14a3a0;
+	--tradoshi-loss: #e0543f;
+	container-type: inline-size;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-l);
+	background: var(--background-secondary);
+	padding: var(--size-4-3) var(--size-4-4);
+	margin: var(--size-4-2) 0 var(--size-4-4);
+	font-size: var(--font-ui-small);
+}
+.theme-light .tradoshi-tc { --tradoshi-gain: #0e7f7c; --tradoshi-loss: #c2412d; }
+.tradoshi-tc .pos { color: var(--tradoshi-gain); }
+.tradoshi-tc .neg { color: var(--tradoshi-loss); }
+.tradoshi-tc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--size-4-3); flex-wrap: wrap; }
+.tradoshi-tc-id { display: flex; align-items: center; gap: var(--size-2-3); flex-wrap: wrap; }
+.tradoshi-tc-symbol { font-size: 1.5em; font-weight: var(--font-bold); }
+.tradoshi-badge { font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); border-radius: var(--radius-s); padding: 1px var(--size-2-2); border: 1px solid var(--background-modifier-border); color: var(--text-muted); }
+.tradoshi-badge.is-win { color: var(--tradoshi-gain); border-color: var(--tradoshi-gain); }
+.tradoshi-badge.is-loss { color: var(--tradoshi-loss); border-color: var(--tradoshi-loss); }
+.tradoshi-badge.is-reviewed { color: var(--text-accent); border-color: var(--text-accent); }
+.tradoshi-tc-result { text-align: right; }
+.tradoshi-tc-pnl { font-size: 1.6em; font-weight: var(--font-bold); line-height: 1.1; }
+.tradoshi-tc-r { font-weight: var(--font-semibold); }
+.tradoshi-tc-sub { color: var(--text-muted); margin: var(--size-2-2) 0 var(--size-4-3); }
+.tradoshi-tc-metrics { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--size-2-3); }
+.tradoshi-tc-metrics .tradoshi-kpi { background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-2-3) var(--size-4-2); min-width: 0; }
+.tradoshi-tc-metrics .tradoshi-kpi-label { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: var(--font-semibold); }
+.tradoshi-tc-metrics .tradoshi-kpi-value { font-weight: var(--font-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tradoshi-tc-ladder { width: 100%; height: auto; display: block; margin: var(--size-4-2) 0; }
+.tradoshi-tc-ladder-base { stroke: var(--background-modifier-border); stroke-width: 2; }
+.tradoshi-tc-zone.is-risk { fill: var(--tradoshi-loss); opacity: 0.2; }
+.tradoshi-tc-zone.is-reward { fill: var(--tradoshi-gain); opacity: 0.2; }
+.tradoshi-tc-mark { stroke-width: 3; stroke: var(--text-muted); }
+.tradoshi-tc-mark.is-sl { stroke: var(--tradoshi-loss); }
+.tradoshi-tc-mark.is-tp { stroke: var(--tradoshi-gain); }
+.tradoshi-tc-mark.is-entry { stroke: var(--text-normal); }
+.tradoshi-tc-mark.is-gain { stroke: var(--tradoshi-gain); stroke-width: 5; }
+.tradoshi-tc-mark.is-loss { stroke: var(--tradoshi-loss); stroke-width: 5; }
+.tradoshi-tc-mark-label { fill: var(--text-muted); font-size: 15px; }
+.tradoshi-tc-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--size-4-3); margin-top: var(--size-4-2); }
+.tradoshi-tc-section { background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-4-2) var(--size-4-3); min-width: 0; }
+.tradoshi-tc-section-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-semibold); color: var(--text-muted); margin-bottom: var(--size-2-3); }
+.tradoshi-tc-facts { display: grid; gap: var(--size-2-2); }
+.tradoshi-tc-fact { display: flex; justify-content: space-between; gap: var(--size-4-2); }
+.tradoshi-tc-tags { display: flex; flex-wrap: wrap; gap: var(--size-2-2); margin: var(--size-2-3) 0; }
+.tradoshi-tag { font-size: var(--font-ui-smaller); border-radius: var(--radius-s); padding: 1px var(--size-2-2); background: var(--background-modifier-hover); }
+.tradoshi-tag.is-setup { color: var(--text-accent); }
+.tradoshi-tag.is-mistake { color: var(--tradoshi-loss); }
+.tradoshi-tc-field { display: grid; gap: var(--size-2-1); margin-bottom: var(--size-2-3); }
+.tradoshi-tc-field label { font-weight: var(--font-semibold); }
+.tradoshi-tc-field textarea { width: 100%; resize: vertical; font-size: var(--font-ui-small); }
+.tradoshi-tc-reviewed { display: flex; justify-content: space-between; align-items: center; gap: var(--size-4-2); flex-wrap: wrap; }
+.tradoshi-tc-media { margin-top: var(--size-4-3); }
+.tradoshi-tc-thumbs { display: flex; gap: var(--size-2-3); overflow-x: auto; padding-bottom: var(--size-2-1); }
+.tradoshi-tc-thumb { padding: 0; height: 96px; width: auto; border-radius: var(--radius-s); overflow: hidden; flex: 0 0 auto; background: var(--background-primary); }
+.tradoshi-tc-thumb img, .tradoshi-tc-thumb video { height: 96px; width: auto; display: block; }
+.tradoshi-tc-nav { display: flex; align-items: center; gap: var(--size-2-3); flex-wrap: wrap; margin-top: var(--size-4-3); }
+.tradoshi-tc-nav .tradoshi-guide-link { margin-left: auto; }
+.tradoshi-media-modal { width: min(1200px, 95vw); }
+.tradoshi-media-full { max-width: 100%; max-height: 75vh; display: block; margin: 0 auto; }
+
+@container (max-width: 700px) {
+	.tradoshi-tc-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	.tradoshi-tc-cols { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 420px) {
+	.tradoshi-tc-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

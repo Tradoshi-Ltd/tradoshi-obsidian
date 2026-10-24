@@ -232,20 +232,24 @@ export function tradeBlock(ctx: RenderContext, t: ApiTrade, account: ApiAccount)
 	lines.push(`# ${text(t.symbol)} ${t.side}, ${money(t.pnl, account.currency)}`);
 	lines.push("");
 	if (day) lines.push(`Day: ${dayLink(ctx, day)}`, "");
-	lines.push("| | |", "|---|---|");
-	lines.push(`| Account | ${cell(account.name)}${account.broker ? ` (${cell(account.broker)})` : ""} |`);
-	lines.push(`| Opened | ${cell(dateTime(ctx, t.openTime)?.replace("T", " "))} |`);
-	lines.push(`| Closed | ${cell(dateTime(ctx, t.closeTime)?.replace("T", " "))} |`);
-	lines.push(`| Entry, exit | ${cell(t.entryPrice)} → ${cell(t.exitPrice)} |`);
-	lines.push(`| Volume | ${cell(t.volume)} |`);
-	lines.push(`| Stop loss, take profit | ${cell(t.stopLoss)}, ${cell(t.takeProfit)} |`);
-	lines.push(`| Net P&L | ${money(t.pnl, account.currency)} |`);
-	lines.push(`| Fees | commission ${t.commission.toFixed(2)}, swap ${t.swap.toFixed(2)} |`);
-	if (t.rMultiple !== null) lines.push(`| R multiple | ${t.rMultiple} R |`);
-	if (t.emotion) lines.push(`| Emotion | ${cell(t.emotion)} |`);
-	if (t.rating !== null) lines.push(`| Execution rating | ${t.rating} / 5 |`);
-	if (t.followedPlan !== null) lines.push(`| Followed the plan | ${t.followedPlan ? "yes" : "no"} |`);
-	if (t.tags.length) lines.push(`| Tradoshi tags | ${t.tags.map(cell).join(", ")} |`);
+	// The plugin draws the trade card from the note's properties. The same facts follow
+	// in a folded table, readable wherever the plugin is not (mobile, Publish, another editor).
+	lines.push("```tradoshi-trade", "```", "");
+	const table = ["| | |", "|---|---|"];
+	table.push(`| Account | ${cell(account.name)}${account.broker ? ` (${cell(account.broker)})` : ""} |`);
+	table.push(`| Opened | ${cell(dateTime(ctx, t.openTime)?.replace("T", " "))} |`);
+	table.push(`| Closed | ${cell(dateTime(ctx, t.closeTime)?.replace("T", " "))} |`);
+	table.push(`| Entry, exit | ${cell(t.entryPrice)} → ${cell(t.exitPrice)} |`);
+	table.push(`| Volume | ${cell(t.volume)} |`);
+	table.push(`| Stop loss, take profit | ${cell(t.stopLoss)}, ${cell(t.takeProfit)} |`);
+	table.push(`| Net P&L | ${money(t.pnl, account.currency)} |`);
+	table.push(`| Fees | commission ${t.commission.toFixed(2)}, swap ${t.swap.toFixed(2)} |`);
+	if (t.rMultiple !== null) table.push(`| R multiple | ${t.rMultiple} R |`);
+	if (t.emotion) table.push(`| Emotion | ${cell(t.emotion)} |`);
+	if (t.rating !== null) table.push(`| Execution rating | ${t.rating} / 5 |`);
+	if (t.followedPlan !== null) table.push(`| Followed the plan | ${t.followedPlan ? "yes" : "no"} |`);
+	if (t.tags.length) table.push(`| Tradoshi tags | ${t.tags.map(cell).join(", ")} |`);
+	lines.push("> [!info]- Trade details", ...table.map((l) => `> ${l}`));
 	if (t.reviewNote) {
 		lines.push("", "## Review from Tradoshi", "", t.reviewNote.trim());
 	}

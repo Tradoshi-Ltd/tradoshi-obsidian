@@ -70,6 +70,7 @@ export function tradesFromVault(app: App): DashTrade[] {
 			fees: (num(fm.commission) ?? 0) + (num(fm.swap) ?? 0),
 			rating: num(fm.rating),
 			broker: str(fm.broker),
+			reviewed: fm.review_done === true,
 		});
 	}
 	return out;
@@ -116,6 +117,7 @@ export function sampleTrades(now: number = Date.now()): DashTrade[] {
 			fees: 0,
 			rating: null,
 			broker: null,
+			reviewed: i % 3 !== 0,
 		};
 	});
 }

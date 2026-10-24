@@ -33,6 +33,8 @@ export interface DashTrade {
 	/** The trader's own grade of the trade, when given. */
 	rating: number | null;
 	broker: string | null;
+	/** Marked as reviewed by the trader in the trade card. */
+	reviewed: boolean;
 }
 
 export interface Kpis {

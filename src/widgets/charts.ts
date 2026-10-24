@@ -29,7 +29,7 @@ export function lineChart(
 	const x = (i: number): number => pl + (i / Math.max(points.length - 1, 1)) * (W - pl - pr);
 	const y = (v: number): number => pt + (1 - (v - min) / span) * (H - pt - pb);
 	const axis = opts.formatAxis ?? ((v: number) => compact(v, opts.currency));
-	const svg = card.createSvg("svg", { cls: `tradoshi-chart${opts.tone === "loss" ? " is-loss" : ""}`, attr: { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label } });
+	const svg = card.createSvg("svg", { cls: opts.tone === "loss" ? ["tradoshi-chart", "is-loss"] : "tradoshi-chart", attr: { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label } });
 	for (let i = 0; i <= 4; i++) {
 		const v = min + (span * i) / 4;
 		svg.createSvg("line", { cls: "tradoshi-grid", attr: { x1: pl, x2: W - pr, y1: y(v), y2: y(v) } });
