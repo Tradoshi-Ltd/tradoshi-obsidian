@@ -1,6 +1,7 @@
 import { Modal, Notice, Setting, type App } from "obsidian";
 import { language, locale, t } from "./i18n";
-import { CSV_FIELDS, parseCsv, parseMetaTrader, tradesFromCsv, type CsvField, type ParsedFile } from "./import-parsers";
+import { CSV_FIELDS, parseCsv, parseRows, parseMetaTrader, tradesFromCsv, type CsvField, type ParsedFile } from "./import-parsers";
+import { readXlsx } from "./xlsx";
 import type TradoshiPlugin from "./main";
 import type { ApiTrade } from "./types";
 
@@ -54,7 +55,7 @@ export class ImportModal extends Modal {
 			return;
 		}
 
-		const input = contentEl.createEl("input", { attr: { type: "file", accept: ".htm,.html,.csv,.txt" } });
+		const input = contentEl.createEl("input", { attr: { type: "file", accept: ".htm,.html,.csv,.txt,.xlsx" } });
 		contentEl.createEl("p", { cls: "setting-item-description", text: t("importChoose") });
 		input.addEventListener("change", () => {
 			const file = input.files?.[0];
@@ -69,8 +70,12 @@ export class ImportModal extends Modal {
 
 	private async read(file: File): Promise<void> {
 		try {
-			const text = await file.text();
-			this.parsed = /<html|<table/i.test(text.slice(0, 5000)) ? parseMetaTrader(text, file.name) : parseCsv(text, file.name, language() === "en");
+			if (/\.xlsx$/i.test(file.name)) {
+				this.parsed = parseRows(await readXlsx(await file.arrayBuffer()), file.name, language() === "en");
+			} else {
+				const text = await file.text();
+				this.parsed = /<html|<table/i.test(text.slice(0, 5000)) ? parseMetaTrader(text, file.name) : parseCsv(text, file.name, language() === "en");
+			}
 			this.trades = this.parsed.trades;
 			this.skipped = Number(this.parsed.warnings.find((w) => w.startsWith("skipped:"))?.split(":")[1] ?? 0);
 			this.accountName = this.parsed.account.name;

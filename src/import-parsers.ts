@@ -40,8 +40,8 @@ export function parseNumber(raw: string | undefined): number {
 
 export function normSide(raw: string): "long" | "short" | null {
 	const n = norm(raw);
-	if (/\b(buy|long|achat|compra|b)\b/.test(n) || n.startsWith("buy")) return "long";
-	if (/\b(sell|short|vente|venta|venda|s)\b/.test(n) || n.startsWith("sell")) return "short";
+	if (/\b(buy|long|achat|compra|comprado|largo|b)\b/.test(n) || n.startsWith("buy")) return "long";
+	if (/\b(sell|short|vente|venta|venda|vendido|corto|s)\b/.test(n) || n.startsWith("sell")) return "short";
 	return null;
 }
 
@@ -416,16 +416,16 @@ export const CSV_FIELDS: CsvField[] = ["symbol", "side", "open", "close", "entry
 /** Column names recognised for each field, normalised (lowercase, no accents). */
 const ALIASES: Record<CsvField, RegExp> = {
 	id: /^(ticket|id|trade id|position|position id|order|deal|#|n°|numero)$/,
-	symbol: /^(symbol|symbole|instrument|ticker|asset|actif|ativo|simbolo|market|marche|contract|contrat|pair|paire|activo)$/,
-	side: /^(side|type|direction|sens|action|tipo|lado|buy\/sell|long\/short|sentido|operacao)$/,
-	open: /^(open time|opened|open date|entry time|entry date|date open|time open|ouverture|heure d'ouverture|date d'ouverture|date ouverture|abertura|data de abertura|apertura|fecha de apertura|open|date|time|entry)$/,
-	close: /^(close time|closed|close date|exit time|exit date|date close|time close|fermeture|cloture|heure de cloture|date de cloture|date cloture|fechamento|data de fechamento|cierre|fecha de cierre|close|exit)$/,
-	entry: /^(entry price|open price|price open|avg entry|prix d'entree|prix entree|prix d'ouverture|prix ouverture|preco de entrada|preco entrada|precio de entrada|entry px|buy price)$/,
-	exit: /^(exit price|close price|price close|avg exit|prix de sortie|prix sortie|prix de cloture|prix cloture|preco de saida|preco saida|precio de salida|exit px|sell price)$/,
-	volume: /^(volume|lots?|size|qty|quantity|quantite|contracts?|contrats?|quantidade|cantidad|position size|taille)$/,
-	pnl: /^(net p&l|net pnl|net profit|profit net|resultat net|p&l net|pnl|p&l|profit|profit\/loss|resultat|result|gain|lucro|lucro liquido|resultado|resultado neto|realized p&l|realized pnl|net)$/,
-	gross: /^(gross p&l|gross pnl|gross profit|profit brut|resultat brut|lucro bruto|resultado bruto)$/,
-	commission: /^(commission|commissions|fees|fee|frais|comissao|comision|comisiones|taxas|costs?)$/,
+	symbol: /^(symbol|symbole|instrument|instrumento|ticker|asset|actif|ativo|simbolo|market|marche|contract|contrat|pair|paire|activo)$/,
+	side: /^(side|type|direction|direccion|direcao|sens|action|tipo|lado|buy\/sell|long\/short|sentido|operacao)$/,
+	open: /^(open time|opened|open date|entry time|entry date|date open|time open|ouverture|heure d'ouverture|date d'ouverture|date ouverture|abertura|data de abertura|apertura|fecha de apertura|open|date|time|fecha|data|datum)$/,
+	close: /^(close time|closed|close date|exit time|exit date|date close|time close|fermeture|cloture|heure de cloture|date de cloture|date cloture|fechamento|data de fechamento|cierre|fecha de cierre|close)$/,
+	entry: /^(entry price|open price|price open|avg entry|prix d'entree|prix entree|prix d'ouverture|prix ouverture|preco de entrada|preco entrada|precio de entrada|entry px|buy price|entry|entree|entrada)$/,
+	exit: /^(exit price|close price|price close|avg exit|prix de sortie|prix sortie|prix de cloture|prix cloture|preco de saida|preco saida|precio de salida|exit px|sell price|exit|sortie|salida|saida)$/,
+	volume: /^(volume|lots?|size|qty|quantity|quantite|contracts?|contrats?|quantidade|cantidad|position size|taille|tamano|tamanho)$/,
+	pnl: /^(net p&l|net pnl|net profit|profit net|resultat net|p&l net|pnl|p&l|profit|profit\/loss|resultat|result|gain|lucro|lucro liquido|resultado|resultado neto|realized p&l|realized pnl|net|p&l neto|pnl neto|p&l liquido|pnl liquido)$/,
+	gross: /^(gross p&l|gross pnl|gross profit|profit brut|resultat brut|lucro bruto|resultado bruto|p&l brut|p&l bruto|pnl bruto)$/,
+	commission: /^(commission|commissions|fees|fee|frais|comissao|comision|comisiones|taxas|costs?|custos|costes)$/,
 	swap: /^(swap|swaps|rollover|financing|financement|echange)$/,
 	stop: /^(s\/l|sl|stop|stop loss|stoploss)$/,
 	target: /^(t\/p|tp|target|take profit|takeprofit|objectif)$/,
@@ -464,13 +464,42 @@ export function splitCsv(text: string): string[][] {
 }
 
 /** The header row (the first row naming at least three known columns) and the detected mapping. */
+/** A column name without its unit or currency: "P&L net EUR" → "p&l net", "Taille (lots)" → "taille". */
+export function headerName(raw: string): string {
+	return norm(raw)
+		.replace(/\([^)]*\)/g, " ")
+		.replace(/\b(usd|eur|gbp|chf|jpy|cad|aud|nzd|brl|xof|xaf|usdt|mxn|ars|cop|clp|pen|zar|inr)\b/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+/** Most of the first values of a column read as dates, and not as plain numbers. */
+function holdsDates(rows: string[][], col: number): boolean {
+	const values = rows.map((r) => (r[col] ?? "").trim()).filter(Boolean).slice(0, 8);
+	if (!values.length) return false;
+	const dates = values.filter((v) => !/^[-+]?[\d\s.,]+$/.test(v) && (parseDate(v, "dmy") !== null || parseDate(v, "mdy") !== null));
+	return dates.length > values.length / 2;
+}
+
 export function detectColumns(rows: string[][]): { header: number; mapping: Partial<Record<CsvField, number>> } {
 	for (let r = 0; r < Math.min(rows.length, 15); r++) {
-		const names = rows[r].map(norm);
+		const names = rows[r].map(headerName);
 		const mapping: Partial<Record<CsvField, number>> = {};
 		for (const field of CSV_FIELDS) {
 			const i = names.findIndex((n, idx) => ALIASES[field].test(n) && !Object.values(mapping).includes(idx));
 			if (i >= 0) mapping[field] = i;
+		}
+		// "Entry" and "Exit" name prices in most journals and times in some exports: the values decide.
+		const data = rows.slice(r + 1);
+		for (const [price, time] of [
+			["entry", "open"],
+			["exit", "close"],
+		] as const) {
+			const col = mapping[price];
+			if (col !== undefined && mapping[time] === undefined && holdsDates(data, col)) {
+				mapping[time] = col;
+				delete mapping[price];
+			}
 		}
 		if (Object.keys(mapping).length >= 3) return { header: r, mapping };
 	}
@@ -522,6 +551,20 @@ export function tradesFromCsv(rows: string[][], header: number, mapping: Partial
 	const get = (r: string[], f: CsvField): string => (mapping[f] !== undefined ? r[mapping[f]] ?? "" : "");
 	const data = rows.slice(header + 1);
 	const order = dateOrder(data.flatMap((r) => [get(r, "open"), get(r, "close")]), preferMonthFirst);
+	// Costs are written as negative amounts by some platforms (MetaTrader) and as positive
+	// ones by others ("Fees 4" with gross 120 and net 116). The rows that carry all three tell
+	// which; without them, a cost column that is never negative holds amounts to subtract.
+	let feeSign = 1;
+	const complete = data
+		.map((r) => [parseNumber(get(r, "pnl")), parseNumber(get(r, "gross")), parseNumber(get(r, "commission")), parseNumber(get(r, "swap")) || 0])
+		.filter(([n, g, c]) => Number.isFinite(n) && Number.isFinite(g) && Number.isFinite(c) && c !== 0);
+	if (complete.length) {
+		const subtracted = complete.filter(([n, g, c, sw]) => Math.abs(n - (g - c + sw)) < Math.abs(n - (g + c + sw))).length;
+		if (subtracted > complete.length / 2) feeSign = -1;
+	} else {
+		const costs = data.map((r) => parseNumber(get(r, "commission"))).filter((c) => Number.isFinite(c) && c !== 0);
+		if (costs.length && costs.every((c) => c > 0)) feeSign = -1;
+	}
 	const trades: ApiTrade[] = [];
 	let skipped = 0;
 	for (const r of data) {
@@ -531,7 +574,7 @@ export function tradesFromCsv(rows: string[][], header: number, mapping: Partial
 		const open = parseDate(get(r, "open"), order);
 		const net = parseNumber(get(r, "pnl"));
 		const gross = parseNumber(get(r, "gross"));
-		const commission = parseNumber(get(r, "commission")) || 0;
+		const commission = feeSign * (parseNumber(get(r, "commission")) || 0);
 		const swap = parseNumber(get(r, "swap")) || 0;
 		if (!symbol || !side || !close || (!Number.isFinite(net) && !Number.isFinite(gross))) {
 			skipped++;
@@ -558,7 +601,11 @@ export function tradesFromCsv(rows: string[][], header: number, mapping: Partial
 }
 
 export function parseCsv(text: string, fileName: string, preferMonthFirst = false): ParsedFile & { rows: string[][]; header: number; mapping: Partial<Record<CsvField, number>> } {
-	const rows = splitCsv(text.replace(/^\uFEFF/, ""));
+	return parseRows(splitCsv(text.replace(/^\uFEFF/, "")), fileName, preferMonthFirst);
+}
+
+/** Rows of a table, from a CSV or the first sheet of an Excel workbook, read like a CSV. */
+export function parseRows(rows: string[][], fileName: string, preferMonthFirst = false): ParsedFile & { rows: string[][]; header: number; mapping: Partial<Record<CsvField, number>> } {
 	const { header, mapping } = detectColumns(rows);
 	const { trades, skipped } = tradesFromCsv(rows, header, mapping, preferMonthFirst);
 	const warnings = skipped ? [`skipped:${skipped}`] : [];
