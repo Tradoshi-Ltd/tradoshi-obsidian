@@ -157,6 +157,7 @@ export const disciplineWidget: Widget = {
 	title: () => t("discipline"),
 	size: "third",
 	defaultOn: true,
+	plan: "essentiel",
 	render(card, ctx) {
 		cardTitle(card, t("discipline"));
 		const { followed, broken } = planSplit(ctx.trades, ctx.currency);

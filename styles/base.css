@@ -184,3 +184,16 @@
 @media (prefers-reduced-motion: reduce) {
 	.tradoshi-dash * { transition: none !important; }
 }
+
+/* A feature of a paid plan, in place of the feature. */
+.tradoshi-lock {
+	border: 1px dashed var(--background-modifier-border); border-radius: var(--radius-m);
+	background: var(--background-secondary); padding: var(--size-4-3) var(--size-4-4); margin: var(--size-2-3) 0;
+}
+.tradoshi-lock p { margin: 0 0 var(--size-2-3); }
+.tradoshi-lock .tradoshi-strong { font-weight: var(--font-semibold); }
+.tradoshi-lock .tradoshi-muted { color: var(--text-muted); }
+.tradoshi-lock .tradoshi-small { font-size: var(--font-ui-smaller); }
+.tradoshi-lock .tradoshi-sample-buttons { margin: var(--size-2-3) 0; }
+.tradoshi-lock.is-compact { border: none; background: none; padding: 0; margin: var(--size-2-2) 0 0; }
+.tradoshi-lock.is-compact .tradoshi-strong { font-weight: var(--font-normal); color: var(--text-muted); font-size: var(--font-ui-small); }

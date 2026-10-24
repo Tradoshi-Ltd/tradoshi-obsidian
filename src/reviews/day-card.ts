@@ -3,6 +3,7 @@ import { money, num, sign } from "../format";
 import { t, tradesLabel } from "../i18n";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
+import { lockPanel, offerEvents, showable } from "../offer";
 import type { DashTrade } from "../stats";
 import { multiLine } from "../widgets/analytics-charts";
 import type { WidgetContext } from "../widgets/types";
@@ -51,6 +52,9 @@ export class DayCard extends MarkdownRenderChild {
 
 	onload(): void {
 		this.render();
+		const onOffer = (): void => this.render();
+		offerEvents.add(onOffer);
+		this.register(() => offerEvents.delete(onOffer));
 		this.registerEvent(
 			this.app.metadataCache.on("changed", (file, _data, cache) => {
 				const fm = cache.frontmatter;
@@ -139,6 +143,7 @@ export class DayCard extends MarkdownRenderChild {
 
 	/** Opens the question sets from the card, on the set it shows. */
 	private questionsButton(nav: HTMLElement, tab: TemplateId): void {
+		if (!showable(this.plugin, "essentiel")) return;
 		const b = nav.createEl("button", { cls: "clickable-icon", attr: { "aria-label": rt("cmdQuestions") } });
 		setIcon(b, "list-checks");
 		b.addEventListener("click", () => new TemplatesModal(this.app, this.plugin, tab, () => this.render()).open());
@@ -273,6 +278,8 @@ export class DayCard extends MarkdownRenderChild {
 		const answers = answersOf(fm, questions);
 		const pr = progress(questions, answers);
 		const sec = section(grid, rt("plan"), `${pr.answered}/${pr.total}`, wide ? "tradoshi-dc-wide" : "");
+		// The written check-in is part of the Essential plan, as on the pricing page.
+		if (!showable(this.plugin, "essentiel")) return lockPanel(sec, this.plugin, "essentiel");
 		this.drawCarried(sec, day);
 		questionForm(sec, questions, answers, (q, v) => void this.answer(file, q, v));
 	}
@@ -308,6 +315,7 @@ export class DayCard extends MarkdownRenderChild {
 		const answers = answersOf(fm, questions);
 		const pr = progress(questions, answers);
 		const sec = section(grid, rt("postReview"), `${pr.answered}/${pr.total}`, wide ? "tradoshi-dc-wide" : "");
+		if (!showable(this.plugin, "essentiel")) return lockPanel(sec, this.plugin, "essentiel");
 		questionForm(sec, questions, answers, (q, v) => void this.answer(file, q, v));
 	}
 

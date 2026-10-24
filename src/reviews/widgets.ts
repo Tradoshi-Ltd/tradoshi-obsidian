@@ -58,6 +58,7 @@ export const reviewStreaksWidget: Widget = {
 	title: () => rt("streaksTitle"),
 	size: "narrow",
 	defaultOn: false,
+	plan: "essentiel",
 	render(card, ctx) {
 		cardTitle(card, rt("streaksTitle"));
 		const s = reviewState(ctx);

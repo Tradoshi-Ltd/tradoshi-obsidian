@@ -2,6 +2,7 @@ import { Modal, Notice, Setting, TFile, type App, type FrontMatterCache } from "
 import { money, num } from "../format";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
+import { allows, lockPanel, planName } from "../offer";
 import { fileAccountId } from "../sync";
 import type { ApiTrade } from "../types";
 import { figures, manualId, parseTyped, wallToUtc } from "./calc";
@@ -183,19 +184,25 @@ export class ManualTradeModal extends Modal {
 		const el = this.contentEl;
 		el.empty();
 		el.createEl("p", { cls: "setting-item-description", text: mt("intro") });
+		// Backtesting is part of the Pro plan, as on the pricing page.
+		const backtest = allows(this.plugin, "pro");
 
 		new Setting(el)
 			.setName(mt("type"))
 			.setDesc(mt("typeDesc"))
 			.addDropdown((d) =>
 				d
-					.addOptions({ executed: mt("executed"), missed: mt("missed"), backtest: mt("backtest") })
+					.addOptions({ executed: mt("executed"), missed: mt("missed"), backtest: backtest ? mt("backtest") : `${mt("backtest")} · ${planName("pro")}` })
 					.setValue(this.f.kind)
 					.onChange((v) => {
 						this.f.kind = v as Form["kind"];
 						this.draw();
 					}),
 			);
+		if (this.f.kind === "backtest" && !backtest) {
+			lockPanel(el, this.plugin, "pro");
+			return;
+		}
 		if (this.f.kind === "missed") this.text(el, mt("missedReason"), "missedReason");
 
 		const account = new Setting(el).setName(mt("account")).addDropdown((d) => {

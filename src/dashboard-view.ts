@@ -7,10 +7,11 @@ import { loadDashData, type DashData } from "./journal-data";
 import { openManualTrade } from "./manual";
 import { mt } from "./manual/text";
 import { LOGO_DATA_URI } from "./logo";
+import { lockPanel, showable } from "./offer";
 import { guideLink } from "./render";
 import { mainCurrency } from "./stats";
 import { resolveLayout } from "./widgets/registry";
-import type { WidgetContext } from "./widgets/types";
+import { cardTitle, type WidgetContext } from "./widgets/types";
 import type TradoshiPlugin from "./main";
 
 export const DASHBOARD_VIEW = "tradoshi-dashboard";
@@ -126,6 +127,11 @@ export class DashboardView extends ItemView {
 		for (const { widget, on } of resolveLayout(this.plugin.settings.layout)) {
 			if (!on) continue;
 			const card = grid.createDiv({ cls: `tradoshi-card tradoshi-w-${widget.size}`, attr: { "data-widget": widget.id } });
+			if (widget.plan && !showable(this.plugin, widget.plan)) {
+				cardTitle(card, widget.title());
+				lockPanel(card, this.plugin, widget.plan, true);
+				continue;
+			}
 			try {
 				widget.render(card, ctx);
 			} catch (e) {

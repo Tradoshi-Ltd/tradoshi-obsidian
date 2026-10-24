@@ -57,6 +57,8 @@ export interface JournalResponse {
 	accounts: ApiAccount[];
 	notes: ApiDayNote[];
 	tags: ApiTag[];
+	/** Plan of the account, as on the pricing page. Absent from an older server, null when unreadable. */
+	plan?: { code: string; trial: boolean; until: string | null } | null;
 }
 
 /** A trade together with the account it belongs to. */

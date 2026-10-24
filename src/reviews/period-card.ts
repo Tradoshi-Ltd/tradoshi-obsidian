@@ -3,6 +3,7 @@ import { money, num, percent, sign } from "../format";
 import { t, tradesLabel } from "../i18n";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
+import { lockPanel, offerEvents, showable } from "../offer";
 import { mainCurrency, type DashTrade, type Group } from "../stats";
 import { multiLine } from "../widgets/analytics-charts";
 import type { WidgetContext } from "../widgets/types";
@@ -46,6 +47,9 @@ export class PeriodCard extends MarkdownRenderChild {
 
 	onload(): void {
 		this.render();
+		const onOffer = (): void => this.render();
+		offerEvents.add(onOffer);
+		this.register(() => offerEvents.delete(onOffer));
 		this.registerEvent(
 			this.app.metadataCache.on("changed", (file, _data, cache) => {
 				const p = this.period;
@@ -132,6 +136,7 @@ export class PeriodCard extends MarkdownRenderChild {
 		const up = parentOf(p);
 		if (up) go(periodShort(up), reviewTitle(up.kind), up);
 		go("›", rt("nextPeriod"), shiftPeriod(p, 1));
+		if (!showable(this.plugin, "essentiel")) return;
 		const b = nav.createEl("button", { cls: "clickable-icon", attr: { "aria-label": rt("cmdQuestions") } });
 		setIcon(b, "list-checks");
 		b.addEventListener("click", () => new TemplatesModal(this.app, this.plugin, p.kind as TemplateId, () => this.render()).open());
@@ -335,6 +340,8 @@ export class PeriodCard extends MarkdownRenderChild {
 		const answers = answersOf(fm, questions);
 		const pr = progress(questions, answers);
 		const sec = section(root, rt("questions"), `${pr.answered}/${pr.total}`);
+		// The review questions are part of the Essential plan; the figures above stay free.
+		if (!showable(this.plugin, "essentiel")) return lockPanel(sec, this.plugin, "essentiel");
 		this.drawCarried(sec, p, id);
 		if (!own || !note) {
 			questionForm(sec, questions, answers, () => undefined, { readOnly: true });

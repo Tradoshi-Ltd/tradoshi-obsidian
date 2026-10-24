@@ -1,5 +1,6 @@
 import type TradoshiPlugin from "../main";
 import type { PluginModule } from "../modules";
+import { allows, offerEvents } from "../offer";
 import { sessionHooks } from "../reviews/day-card";
 import { closeSession, endSession, goLive, restartGate, sessionEvents } from "./actions";
 import { defaultGate, gatesOf, saveSessionData, sessionData } from "./data";
@@ -11,7 +12,10 @@ import { askNote, askUnplanned, clockStatus, openSessionView, SESSION_VIEW, Sess
 
 // Session mode: a sidebar view that follows a trading session from its preparation to
 // its review, a status bar item that shows it is running, and the commands to drive
-// it from the keyboard.
+// it from the keyboard. It is part of the Premium plan: without it, every entry opens
+// the view, which says so.
+
+const premium = (plugin: TradoshiPlugin): boolean => allows(plugin, "premium");
 
 /** The status bar: the session under way, or the trading window that is open. */
 function statusBar(plugin: TradoshiPlugin): void {
@@ -22,6 +26,7 @@ function statusBar(plugin: TradoshiPlugin): void {
 		const s = sessionData(plugin).current;
 		item.empty();
 		item.removeClass("is-live", "is-prep", "is-break");
+		if (!premium(plugin)) return;
 		if (s && s.phase !== "ended") {
 			item.addClass(`is-${s.phase}`);
 			item.setText(s.phase === "prep" ? `◔ ${st("phasePrep")}` : s.phase === "break" ? `❚❚ ${st("phaseBreak")}` : `● ${clock(liveTime(s, Date.now()))}`);
@@ -41,7 +46,11 @@ function statusBar(plugin: TradoshiPlugin): void {
 	};
 	draw();
 	sessionEvents.add(draw);
-	plugin.register(() => sessionEvents.delete(draw));
+	offerEvents.add(draw);
+	plugin.register(() => {
+		sessionEvents.delete(draw);
+		offerEvents.delete(draw);
+	});
 	plugin.registerInterval(window.setInterval(draw, 30000));
 }
 
@@ -60,7 +69,8 @@ export const sessionModule: PluginModule = {
 			checkCallback: (checking) => {
 				const s = sessionData(plugin).current;
 				if (s && s.phase !== "prep" && s.phase !== "ended") return false;
-				if (!checking) {
+				if (!checking && !premium(plugin)) void openSessionView(plugin);
+				else if (!checking) {
 					const w = clockStatus(plugin);
 					if (s?.phase === "prep" || (w.phase === "live" && w.window)) void goLive(plugin, w.window?.name ?? null).then(() => openSessionView(plugin));
 					else askUnplanned(plugin, true);
@@ -68,7 +78,7 @@ export const sessionModule: PluginModule = {
 				return true;
 			},
 		});
-		plugin.addCommand({ id: "start-unplanned-session", name: st("cmdUnplanned"), callback: () => askUnplanned(plugin, true) });
+		plugin.addCommand({ id: "start-unplanned-session", name: st("cmdUnplanned"), callback: () => (premium(plugin) ? askUnplanned(plugin, true) : void openSessionView(plugin)) });
 		plugin.addCommand({
 			id: "end-session",
 			name: st("cmdEnd"),
@@ -83,7 +93,7 @@ export const sessionModule: PluginModule = {
 			id: "add-session-note",
 			name: st("cmdNote"),
 			checkCallback: (checking) => {
-				if (!sessionData(plugin).current) return false;
+				if (!sessionData(plugin).current || !premium(plugin)) return false;
 				if (!checking) askNote(plugin);
 				return true;
 			},
@@ -93,7 +103,7 @@ export const sessionModule: PluginModule = {
 			name: st("cmdGate"),
 			checkCallback: (checking) => {
 				const s = sessionData(plugin).current;
-				if (!s || s.phase !== "live") return false;
+				if (!s || s.phase !== "live" || !premium(plugin)) return false;
 				if (!checking) void restartGate(plugin, defaultGate(sessionData(plugin).config).id).then(() => openSessionView(plugin));
 				return true;
 			},
@@ -102,6 +112,7 @@ export const sessionModule: PluginModule = {
 			id: "edit-trade-gate",
 			name: st("cmdEditGate"),
 			callback: () => {
+				if (!premium(plugin)) return void openSessionView(plugin);
 				const gate = defaultGate(sessionData(plugin).config);
 				new GateEditorModal(plugin.app, gate, (saved) => {
 					const data = sessionData(plugin);
@@ -117,7 +128,7 @@ export const sessionModule: PluginModule = {
 			type: "group",
 			heading: st("title"),
 			items: [
-				{ name: st("settingsTitle"), desc: st("settingsDesc"), action: () => new SessionSettingsModal(plugin.app, plugin, () => sessionEvents.forEach((f) => f())).open() },
+				{ name: st("settingsTitle"), desc: st("settingsDesc"), action: () => (premium(plugin) ? new SessionSettingsModal(plugin.app, plugin, () => sessionEvents.forEach((f) => f())).open() : void openSessionView(plugin)) },
 				{ name: st("cmdOpen"), action: () => void openSessionView(plugin) },
 			],
 		},

@@ -4,6 +4,7 @@ import { NO_FILTERS, type TradeFilters } from "./filters";
 import { language, t } from "./i18n";
 import { modules } from "./modules";
 import { appLink, guideLink, isValidTimeZone } from "./render";
+import type { OfferState } from "./offer";
 import type { LayoutItem } from "./widgets/registry";
 
 export const TOKEN_SECRET_ID = "tradoshi-access-token";
@@ -38,6 +39,8 @@ export interface TradoshiSettings {
 	filters: TradeFilters;
 	/** Data of each module (prop firm challenges, sessions, review templates…), by module id. */
 	modules: Record<string, unknown>;
+	/** Plan of the account, read at each sync. Null until the first sync. */
+	offer: OfferState | null;
 }
 
 export const DEFAULT_SETTINGS: TradoshiSettings = {
@@ -60,6 +63,7 @@ export const DEFAULT_SETTINGS: TradoshiSettings = {
 	layout: [],
 	filters: { ...NO_FILTERS },
 	modules: {},
+	offer: null,
 };
 
 const hours = (): Record<string, string> =>

@@ -89,6 +89,7 @@ export const goalsWidget: Widget = {
 	title: () => tr("goalsTitle"),
 	size: "half",
 	defaultOn: false,
+	plan: "essentiel",
 	render(card, ctx) {
 		const c = ctx.currency;
 		const head = cardTitle(card, tr("goalsTitle"));

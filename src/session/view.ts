@@ -2,6 +2,7 @@ import { ItemView, Modal, setIcon, TFile, type App, type WorkspaceLeaf } from "o
 import { money, sign } from "../format";
 import { tradesLabel } from "../i18n";
 import type TradoshiPlugin from "../main";
+import { allows, lockPanel, offerEvents } from "../offer";
 import { zoned } from "../render";
 import { periodOf } from "../reviews/periods";
 import { timeOf, typingIn } from "../reviews/ui";
@@ -126,7 +127,11 @@ export class SessionView extends ItemView {
 		this.draw();
 		const redraw = (): void => this.schedule();
 		sessionEvents.add(redraw);
-		this.register(() => sessionEvents.delete(redraw));
+		offerEvents.add(redraw);
+		this.register(() => {
+			sessionEvents.delete(redraw);
+			offerEvents.delete(redraw);
+		});
 		this.registerEvent(
 			this.app.metadataCache.on("changed", (_file, _data, cache) => {
 				if (typeof cache.frontmatter?.tradoshi_id === "string" && sessionData(this.plugin).current) this.schedule();
@@ -169,6 +174,11 @@ export class SessionView extends ItemView {
 		el.empty();
 		el.addClass("tradoshi-sv");
 		this.clocks = [];
+		if (!allows(this.plugin, "premium")) {
+			el.createDiv({ cls: "tradoshi-sv-title", text: st("title") });
+			lockPanel(el, this.plugin, "premium");
+			return;
+		}
 		const data = sessionData(this.plugin);
 		const status = clockStatus(this.plugin);
 		this.phaseKey = `${status.phase}:${status.window?.id ?? ""}`;

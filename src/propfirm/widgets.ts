@@ -33,6 +33,7 @@ export const challengesWidget: Widget = {
 	title: () => tr("wChallenges"),
 	size: "half",
 	defaultOn: true,
+	plan: "pro",
 	render(card, ctx) {
 		const { evals, sample, all } = evaluations(ctx);
 		heading(card, ctx, tr("wChallenges"), sample);
@@ -82,6 +83,7 @@ export const drawdownWidget: Widget = {
 	title: () => tr("wDrawdown"),
 	size: "half",
 	defaultOn: false,
+	plan: "pro",
 	render(card, ctx) {
 		const { evals, sample, all } = evaluations(ctx);
 		heading(card, ctx, tr("wDrawdown"), sample);

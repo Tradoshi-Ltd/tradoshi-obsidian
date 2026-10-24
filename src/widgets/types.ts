@@ -1,6 +1,7 @@
 import type { App, Component } from "obsidian";
 import type { DashData } from "../journal-data";
 import type TradoshiPlugin from "../main";
+import type { PaidOffer } from "../offer";
 import type { DashTrade } from "../stats";
 
 // A widget is one card of the dashboard. Each lives in its own file and is listed in
@@ -40,6 +41,8 @@ export interface Widget {
 	size: WidgetSize;
 	/** Shown on a dashboard the trader has not customized yet. */
 	defaultOn: boolean;
+	/** The plan of the pricing page the widget is part of; free when absent. */
+	plan?: PaidOffer;
 	/** Draws into the card. The card is empty; `cardTitle` gives the usual heading. */
 	render(card: HTMLElement, ctx: WidgetContext): void;
 }

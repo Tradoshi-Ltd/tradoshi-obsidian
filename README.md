@@ -62,6 +62,19 @@ Your trades come from your [Tradoshi](https://tradoshi.com) journal, synced auto
 
 Before you connect an account, the dashboard, the accounts and the prop firm view show a sample journal.
 
+## What each plan opens
+
+The plugin follows the [Tradoshi pricing page](https://tradoshi.com/en/pricing). It reads the plan of your account at each sync; a feature your plan does not include shows where it would be, with a link to the plans.
+
+| Plan | In Obsidian |
+|------|-------------|
+| **Free** | The dashboard and its analytics, the calendar, the trade card and your review of each trade, the trade log and its gallery, trades by hand (executed and missed), statement and Excel imports, the figures of day reports and of weekly to yearly reviews, setups and playbooks, accounts, the position size calculator, quick links, privacy mode, navigation |
+| **Essential** | Automatic sync from your brokers, the written check-in and the questions of your day and period reviews, the discipline card, your goals and review streaks |
+| **Pro** | Prop firm challenge tracking, backtest trades |
+| **Premium** | Session mode and the trade gate |
+
+Every new Tradoshi account starts with 14 days of Premium, without a card.
+
 ## Three ways to bring your trades
 
 | | Automatic sync | Imported file | By hand |
@@ -113,8 +126,8 @@ An automatic sync asks Tradoshi only for what changed and writes only those acco
 ## Disclosures
 
 - **Account required.** The plugin needs a free Tradoshi account and an access token created in Tradoshi, also to import a file or to enter a trade by hand. Those trades are still kept on your computer only: the account identifies you, it does not receive them.
-- **Payment.** A Tradoshi account is free, with trades entered by hand and file imports. Automatic sync from your brokers is part of the paid plans, with a free trial. The plugin itself is free and works with any plan.
-- **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal. It sends your access token and the plugin version. Nothing from your vault is ever sent.
+- **Payment.** The plugin is free to install, and a Tradoshi account is free. Some features need a paid Tradoshi plan, as on the pricing page: automatic sync from your brokers, review questions, discipline and goals (Essential), prop firm challenges and backtest trades (Pro), session mode (Premium). See [What each plan opens](#what-each-plan-opens). Every new account starts with a free trial, without a card.
+- **Network use.** The plugin sends requests to one place only: the Tradoshi API (`nzwmqmtenjgixsoetsbd.supabase.co`, the server that hosts Tradoshi), to read your journal and the plan of your account. It sends your access token and the plugin version. Nothing from your vault is ever sent.
 - **Read only.** The access token can only read your journal. It cannot change your journal, place trades, reach your broker credentials or your billing. You can revoke it at any time in Tradoshi.
 - **Where the token is kept.** In the secret storage of Obsidian, not in a plain settings file.
 - **Server-side records.** For each token, Tradoshi records when it was last used, how many requests it made and the plugin version, to show them to you in Tradoshi and to apply a rate limit. There is no telemetry in the plugin. See the [privacy policy](https://tradoshi.com/en/privacy).

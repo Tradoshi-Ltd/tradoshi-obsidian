@@ -1,5 +1,6 @@
 import { ItemView, debounce, type WorkspaceLeaf } from "obsidian";
 import type TradoshiPlugin from "../main";
+import { lockPanel, offerEvents, showable } from "../offer";
 import { amount, money, num, sign } from "../format";
 import { tiles } from "../widgets/charts";
 import { balanceChart } from "./chart";
@@ -45,6 +46,9 @@ export class PropFirmView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		this.register(onChallengesChanged(() => this.refresh()));
+		const onOffer = (): void => this.refresh();
+		offerEvents.add(onOffer);
+		this.register(() => offerEvents.delete(onOffer));
 		// Trade notes written by a sync arrive in bursts: one redraw once they settle.
 		const later = debounce(() => this.refresh(), 1500, true);
 		this.registerEvent(
@@ -74,6 +78,13 @@ export class PropFirmView extends ItemView {
 		const root = this.contentEl;
 		root.empty();
 		root.addClass("tradoshi-dash", "tradoshi-pf-view");
+		if (!showable(this.plugin, "pro")) {
+			const head = root.createDiv({ cls: "tradoshi-head" }).createDiv();
+			head.createDiv({ cls: "tradoshi-pf-title", text: tr("viewTitle") });
+			head.createDiv({ cls: "tradoshi-sub", text: tr("viewSub") });
+			lockPanel(root, this.plugin, "pro");
+			return;
+		}
 		const data = journalData(this.plugin);
 		const shown = shownChallenges(this.plugin, data);
 		const evals = shown.challenges.map((c) => evaluateChallenge(c, data.trades, { today: shown.today }));

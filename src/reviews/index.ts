@@ -3,6 +3,7 @@ import { money, sign } from "../format";
 import { tradesFromVault } from "../journal-data";
 import type TradoshiPlugin from "../main";
 import type { PluginModule } from "../modules";
+import { openLock, showable } from "../offer";
 import { DAY_CARD_BLOCK } from "../render";
 import { mainCurrency } from "../stats";
 import { DayCard } from "./day-card";
@@ -105,7 +106,8 @@ class PeriodModal extends Modal {
 }
 
 export function openTemplates(plugin: TradoshiPlugin): void {
-	new TemplatesModal(plugin.app, plugin).open();
+	if (showable(plugin, "essentiel")) new TemplatesModal(plugin.app, plugin).open();
+	else openLock(plugin, "essentiel", rt("cmdQuestions"));
 }
 
 export const reviewsModule: PluginModule = {

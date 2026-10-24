@@ -1,6 +1,7 @@
 import { Modal, Setting, type App } from "obsidian";
 import { t } from "./i18n";
 import type TradoshiPlugin from "./main";
+import { planName } from "./offer";
 import { resolveLayout, type LayoutItem } from "./widgets/registry";
 
 /** Which widgets the dashboard shows, and in which order. Saved at each change. */
@@ -31,7 +32,8 @@ export class CustomizeModal extends Modal {
 		const el = this.contentEl;
 		el.empty();
 		el.createEl("p", { cls: "setting-item-description", text: t("customizeHint") });
-		const titles = new Map(resolveLayout([]).map(({ widget }) => [widget.id, widget.title()]));
+		// A widget of a paid plan carries its name, as on the pricing page.
+		const titles = new Map(resolveLayout([]).map(({ widget }) => [widget.id, widget.plan ? `${widget.title()} · ${planName(widget.plan)}` : widget.title()]));
 		this.items.forEach((item, i) => {
 			new Setting(el)
 				.setName(titles.get(item.id) ?? item.id)

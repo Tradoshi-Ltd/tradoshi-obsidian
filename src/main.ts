@@ -6,6 +6,7 @@ import { NO_FILTERS } from "./filters";
 import { ImportModal } from "./import-modal";
 import { t } from "./i18n";
 import { modules } from "./modules";
+import { normalizeOffer, offerEvents } from "./offer";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -266,6 +267,12 @@ export default class TradoshiPlugin extends Plugin {
 		}
 	}
 
+	/** Redraws every view that shows a paid feature, after the plan of the account changed. */
+	offerChanged(): void {
+		for (const f of offerEvents) f();
+		this.refreshDashboards();
+	}
+
 	private getToken(): string | null {
 		const token = this.app.secretStorage.getSecret(this.settings.tokenSecret || TOKEN_SECRET_ID);
 		return token && token.trim() ? token.trim() : null;
@@ -303,6 +310,7 @@ export default class TradoshiPlugin extends Plugin {
 					this.app.secretStorage.setSecret(TOKEN_SECRET_ID, token);
 					this.settings.tokenSecret = TOKEN_SECRET_ID;
 					this.settings.lastSync = null;
+					this.settings.offer = null;
 					this.tokenWarned = false;
 					await this.saveSettings();
 					new Notice(`Tradoshi: ${t("nConnected")}`);
@@ -376,10 +384,14 @@ export default class TradoshiPlugin extends Plugin {
 			}
 			this.settings.tagCategories = Object.fromEntries(data.tags.map((tag) => [tag.name, tag.category ?? ""]));
 			this.settings.lastSync = data.generatedAt;
+			// An unreadable plan keeps the last one known, so a paid feature is not closed by mistake.
+			const before = this.settings.offer?.code ?? null;
+			if (data.plan) this.settings.offer = { code: normalizeOffer(data.plan.code), trial: data.plan.trial, until: data.plan.until, at: data.generatedAt };
 			await this.saveSettings();
 			if (manual || stats.created + stats.updated > 0) {
 				new Notice(`Tradoshi: ${t("nSynced", { c: stats.created, u: stats.updated })}`);
 			}
+			if ((this.settings.offer?.code ?? null) !== before) this.offerChanged();
 			// Notes just written are read by the dashboard once Obsidian has indexed them.
 			window.setTimeout(() => this.refreshDashboards(), 1500);
 		} catch (e) {
