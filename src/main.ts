@@ -1,4 +1,4 @@
-import { Notice, Plugin, normalizePath, type ObsidianProtocolData } from "obsidian";
+import { Notice, Plugin, addIcon, normalizePath, type ObsidianProtocolData } from "obsidian";
 import { fetchJournal, TradoshiError } from "./api";
 import { ConnectModal } from "./connect-modal";
 import { appLink, overviewPath } from "./render";
@@ -6,6 +6,16 @@ import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type Tr
 import { historyFrom, writeJournal } from "./sync";
 
 const TOKEN_PATTERN = /^tsr_[A-Z0-9]{20,64}$/;
+
+// The Tradoshi owl, drawn in the current text color like the core ribbon icons.
+const TRADOSHI_ICON =
+	'<g transform="scale(0.9615) translate(-8 -2)">' +
+	'<path d="M40 25 L31 6 L55 22 Z" fill="currentColor"/><path d="M80 25 L89 6 L65 22 Z" fill="currentColor"/>' +
+	'<path d="M60 15C33 15 21 33 21 55C21 80 39 100 60 100C81 100 99 80 99 55C99 33 87 15 60 15Z" fill="none" stroke="currentColor" stroke-width="7"/>' +
+	'<circle cx="45.5" cy="55" r="12" fill="none" stroke="currentColor" stroke-width="6"/>' +
+	'<circle cx="74.5" cy="55" r="12" fill="none" stroke="currentColor" stroke-width="6"/>' +
+	'<circle cx="45.5" cy="55" r="4.5" fill="currentColor"/><circle cx="74.5" cy="55" r="4.5" fill="currentColor"/>' +
+	'<path d="M60 66 L54 77 L66 77 Z" fill="currentColor"/></g>';
 
 // Settings that change which notes are written: a full sync is needed afterwards.
 const RESYNC_KEYS = new Set(["tokenSecret", "folder", "history", "tradeNotes", "dailyNotes", "includeDemo", "includeArchived", "appLinks"]);
@@ -21,7 +31,8 @@ export default class TradoshiPlugin extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new TradoshiSettingTab(this.app, this));
 
-		this.addRibbonIcon("chart-candlestick", "Sync Tradoshi journal", () => void this.sync(true));
+		addIcon("tradoshi", TRADOSHI_ICON);
+		this.addRibbonIcon("tradoshi", "Sync Tradoshi journal", () => void this.sync(true));
 
 		this.addCommand({
 			id: "sync-now",
