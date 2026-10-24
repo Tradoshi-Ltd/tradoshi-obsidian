@@ -5,7 +5,7 @@ import { DASHBOARD_VIEW, DashboardView } from "./dashboard-view";
 import { NO_FILTERS } from "./filters";
 import { ImportModal } from "./import-modal";
 import { t } from "./i18n";
-import { MODULES } from "./modules";
+import { modules } from "./modules";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -101,7 +101,7 @@ export default class TradoshiPlugin extends Plugin {
 		// obsidian://tradoshi?token=… is opened by the "Connect Obsidian" button of the app.
 		this.registerObsidianProtocolHandler("tradoshi", (params) => this.onConnectLink(params));
 
-		for (const m of MODULES) m.load(this);
+		for (const m of modules()) m.load(this);
 
 		this.app.workspace.onLayoutReady(() => {
 			this.keyByPath = indexVault(this.app).byPath;
@@ -229,6 +229,17 @@ export default class TradoshiPlugin extends Plugin {
 		window.setTimeout(() => this.refreshDashboards(), 1500);
 		await this.openDashboard();
 		return trades.length;
+	}
+
+	/** Writes trades entered or edited by hand in an account of the vault; nothing is sent. */
+	async saveManualTrades(account: { name: string; broker: string | null; currency: string }, trades: ApiTrade[]): Promise<void> {
+		await writeImport(this.app, this.settings, account, trades, this.lastDayNotes);
+		window.setTimeout(() => this.refreshDashboards(), 1500);
+	}
+
+	/** Category of each tag: those of Tradoshi, and those given to tags entered by hand. */
+	tagCategories(): Record<string, string> {
+		return { ...this.moduleData<Record<string, string>>("manual-tags", {}), ...this.settings.tagCategories };
 	}
 
 	isConnected(): boolean {

@@ -6,6 +6,8 @@ import type TradoshiPlugin from "../main";
 import { appLink } from "../render";
 import { renderContext } from "../sync";
 import { ladder, outcomeOf, plannedRewardRisk, priceDigits, riskFromR, type TradePrices } from "./geometry";
+import { openManualTrade } from "../manual";
+import { mt } from "../manual/text";
 import { tc } from "./text";
 
 // The card at the top of a trade note: what happened, at a glance, and the trader's own
@@ -228,7 +230,7 @@ export class TradeCard extends MarkdownRenderChild {
 		const tags = Array.isArray(fm.tradoshi_tags) ? fm.tradoshi_tags.map(String) : [];
 		if (tags.length) {
 			const chips = sec.createDiv({ cls: "tradoshi-tc-tags" });
-			const cats = this.plugin.settings.tagCategories;
+			const cats = this.plugin.tagCategories();
 			for (const tag of tags) {
 				const cat = (cats[tag] ?? "").toLowerCase();
 				chips.createSpan({ cls: `tradoshi-tag${cat === "setups" ? " is-setup" : cat === "mistakes" ? " is-mistake" : ""}`, text: tag });
@@ -236,6 +238,10 @@ export class TradeCard extends MarkdownRenderChild {
 		}
 		if (!emotion && rating === null && typeof fm.followed_plan !== "boolean" && !tags.length) rows.createDiv({ cls: "tradoshi-muted", text: "–" });
 		const id = s(fm.tradoshi_id) ?? "";
+		if (id.startsWith("file-")) {
+			const file = this.app.vault.getFileByPath(this.sourcePath);
+			sec.createEl("button", { cls: "tradoshi-tc-edit", text: mt("edit") }).addEventListener("click", () => openManualTrade(this.plugin, file));
+		}
 		if (this.plugin.settings.appLinks && !id.startsWith("file-")) {
 			sec.createEl("a", { cls: "tradoshi-guide-link", text: tc("editInTradoshi"), href: appLink(renderContext(this.plugin.settings), "trade_card_edit") });
 		}

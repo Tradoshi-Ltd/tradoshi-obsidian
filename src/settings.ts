@@ -2,7 +2,7 @@ import { normalizePath, PluginSettingTab, type App, type SettingDefinitionItem }
 import type TradoshiPlugin from "./main";
 import { NO_FILTERS, type TradeFilters } from "./filters";
 import { language, t } from "./i18n";
-import { MODULES } from "./modules";
+import { modules } from "./modules";
 import { appLink, guideLink, isValidTimeZone } from "./render";
 import type { LayoutItem } from "./widgets/registry";
 
@@ -201,7 +201,7 @@ export class TradoshiSettingTab extends PluginSettingTab {
 					},
 				],
 			},
-			...MODULES.flatMap((m) => m.settings?.(this.plugin) ?? []),
+			...modules().flatMap((m) => m.settings?.(this.plugin) ?? []),
 		];
 	}
 

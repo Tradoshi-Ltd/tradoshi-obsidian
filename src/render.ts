@@ -222,6 +222,8 @@ export function tradeFrontmatter(ctx: RenderContext, t: ApiTrade, account: ApiAc
 		rating: t.rating,
 		followed_plan: t.followedPlan,
 		tradoshi_tags: t.tags.length ? [...t.tags] : null,
+		trade_type: t.kind ?? null,
+		missed_reason: t.missedReason ?? null,
 		tags: ["tradoshi/trade"],
 	};
 }
@@ -232,6 +234,8 @@ export function tradeBlock(ctx: RenderContext, t: ApiTrade, account: ApiAccount)
 	lines.push(`# ${text(t.symbol)} ${t.side}, ${money(t.pnl, account.currency)}`);
 	lines.push("");
 	if (day) lines.push(`Day: ${dayLink(ctx, day)}`, "");
+	if (t.kind === "missed") lines.push(`> [!warning] Missed trade${t.missedReason ? `: ${text(t.missedReason)}` : ""}`, "");
+	if (t.kind === "backtest") lines.push("> [!note] Backtest trade", "");
 	// The plugin draws the trade card from the note's properties. The same facts follow
 	// in a folded table, readable wherever the plugin is not (mobile, Publish, another editor).
 	lines.push("```tradoshi-trade", "```", "");
@@ -285,7 +289,8 @@ export interface NoteRecord {
 
 export function recordOf(ctx: RenderContext, t: ApiTrade, account: ApiAccount, path: string | null): NoteRecord | null {
 	const day = tradeDay(ctx, t);
-	if (!day) return null;
+	// A missed or backtest trade is not part of the days and their figures.
+	if (!day || t.kind) return null;
 	return {
 		key: tradeKey(account, t),
 		path,
@@ -309,7 +314,7 @@ export function recordFromProperties(path: string, fm: Record<string, unknown>):
 	const key = str(fm.tradoshi_id);
 	const day = str(fm.trading_day);
 	const pnl = num(fm.pnl);
-	if (!key || !day || pnl === null) return null;
+	if (!key || !day || pnl === null || fm.trade_type === "missed" || fm.trade_type === "backtest") return null;
 	return {
 		key,
 		path: path.replace(/\.md$/, ""),

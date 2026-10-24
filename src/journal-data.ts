@@ -43,6 +43,8 @@ export function tradesFromVault(app: App): DashTrade[] {
 		const day = str(fm?.trading_day);
 		const pnl = num(fm?.pnl);
 		if (!fm || !key || !day || pnl === null) continue;
+		// Missed and backtest trades are journaled, not counted.
+		if (fm.trade_type === "missed" || fm.trade_type === "backtest") continue;
 		const atIso = str(fm.closed_utc) ?? (str(fm.closed) ? `${String(fm.closed)}:00` : null) ?? `${day}T12:00:00`;
 		const parsed = new Date(atIso).getTime();
 		const at = Number.isNaN(parsed) ? new Date(`${day}T12:00:00Z`).getTime() : parsed;

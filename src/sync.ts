@@ -210,7 +210,8 @@ async function writeBatch(app: App, settings: TradoshiSettings, ctx: RenderConte
 	const overviewAccounts: OverviewAccount[] = batch.accounts.map((a) => ({
 		name: a.name,
 		broker: a.broker,
-		trades: a.tradeCount,
+		// An account of the vault (file, hand entry) counts its notes: one trade added by hand is not the whole account.
+		trades: fromFile(a.id) ? all.filter((r) => r.account === a.name).length : a.tradeCount,
 		source: fromFile(a.id) ? "file" : "tradoshi",
 		updated: fromFile(a.id) ? null : a.updatedAt,
 		demo: a.mode === "demo",
@@ -256,6 +257,11 @@ const slug = (s: string): string =>
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-|-$/g, "") || "account";
 
+/** Identity of an account that lives in the vault only (imported file, trades entered by hand). */
+export function fileAccountId(name: string): string {
+	return `file-${slug(name)}`;
+}
+
 /**
  * Writes the trades of a file imported on this computer. They live in the vault only:
  * nothing is sent to Tradoshi. Importing the same file again updates the same notes.
@@ -269,7 +275,7 @@ export async function writeImport(
 ): Promise<WriteStats> {
 	const now = new Date().toISOString();
 	const imported: ApiAccount = {
-		id: `file-${slug(account.name)}`,
+		id: fileAccountId(account.name),
 		name: account.name,
 		broker: account.broker,
 		currency: account.currency,

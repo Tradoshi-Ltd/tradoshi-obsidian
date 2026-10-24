@@ -19,6 +19,9 @@ export interface ApiTrade {
 	followedPlan: boolean | null;
 	reviewNote: string | null;
 	tags: string[];
+	/** A trade entered by hand that was not executed (missed) or not live (backtest): kept out of the figures. */
+	kind?: "missed" | "backtest";
+	missedReason?: string | null;
 }
 
 export interface ApiAccount {

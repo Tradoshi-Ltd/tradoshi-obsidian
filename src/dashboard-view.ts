@@ -4,6 +4,8 @@ import { FilterModal } from "./filter-modal";
 import { activeFilterCount, applyFilters, periodStart, type TradeFilters } from "./filters";
 import { language, t } from "./i18n";
 import { loadDashData, type DashData } from "./journal-data";
+import { openManualTrade } from "./manual";
+import { mt } from "./manual/text";
 import { LOGO_DATA_URI } from "./logo";
 import { guideLink } from "./render";
 import { mainCurrency } from "./stats";
@@ -60,7 +62,7 @@ export class DashboardView extends ItemView {
 
 	/** Reads the journal again and redraws everything. */
 	refresh(): void {
-		this.data = loadDashData(this.app, this.plugin.isConnected(), this.plugin.settings.tagCategories);
+		this.data = loadDashData(this.app, this.plugin.isConnected(), this.plugin.tagCategories());
 		this.draw();
 	}
 
@@ -176,6 +178,7 @@ export class DashboardView extends ItemView {
 			new CustomizeModal(this.app, this.plugin, () => this.draw()).open();
 		});
 		if (!this.data?.sample) {
+			controls.createEl("button", { text: `+ ${mt("titleAdd")}` }).addEventListener("click", () => openManualTrade(this.plugin));
 			controls.createEl("button", { text: t("importStatement") }).addEventListener("click", () => this.plugin.openImport());
 			const sync = controls.createEl("button", { cls: "mod-cta tradoshi-sync", text: t("sync") });
 			sync.addEventListener("click", () => {

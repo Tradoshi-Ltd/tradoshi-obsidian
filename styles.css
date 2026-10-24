@@ -224,6 +224,12 @@
 .tradoshi-filter-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: var(--font-semibold); margin: var(--size-4-3) 0 var(--size-2-2); }
 .tradoshi-filter-chips { display: flex; flex-wrap: wrap; gap: var(--size-2-2); }
 
+/* Trade entered by hand */
+.tradoshi-manual-result { margin: var(--size-4-2) 0 var(--size-4-5); padding: var(--size-4-2) var(--size-4-3); border-radius: var(--radius-m); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); font-weight: var(--font-semibold); }
+.tradoshi-manual-result.pos { color: var(--tradoshi-gain, #14a3a0); }
+.tradoshi-manual-result.neg { color: var(--tradoshi-loss, #e0543f); }
+.tradoshi-tc-edit { margin-top: var(--size-2-3); }
+
 /* Trade card, at the top of each trade note */
 .tradoshi-tc {
 	--tradoshi-gain: #14a3a0;
