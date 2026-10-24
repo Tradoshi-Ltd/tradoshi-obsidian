@@ -1,9 +1,10 @@
 import { ItemView, setIcon, TFile, type WorkspaceLeaf } from "obsidian";
 import { dateLabel, money, sign } from "../format";
-import { emotionLabel, makeT } from "../i18n";
+import { emotionLabel, language, makeT, t } from "../i18n";
 import type TradoshiPlugin from "../main";
 import type { PluginModule } from "../modules";
 import { allPlaces } from "../places";
+import { ideasLink } from "../render";
 
 export const NAV_VIEW = "tradoshi-nav";
 
@@ -215,5 +216,9 @@ export const navModule: PluginModule = {
 		plugin.registerView(NAV_VIEW, (leaf) => new NavView(leaf, plugin));
 		plugin.addCommand({ id: "open-navigation", name: nt("cmdOpen"), callback: () => void openNav(plugin) });
 	},
-	places: (plugin) => [{ id: "navigation", label: () => nt("cmdOpen"), icon: "panel-left", open: () => void openNav(plugin) }],
+	places: (plugin) => [
+		{ id: "navigation", label: () => nt("cmdOpen"), icon: "panel-left", open: () => void openNav(plugin) },
+		// Suggestions go to the Ideas section of the forum, where everyone can read them.
+		{ id: "ideas", label: () => t("sIdeas"), icon: "lightbulb", open: () => window.open(ideasLink(language(), "nav_ideas")) },
+	],
 };

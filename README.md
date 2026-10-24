@@ -143,4 +143,6 @@ npm run lint    # official Obsidian lint rules
 
 ## Support
 
-Open an issue in this repository, or write to contact@tradoshi.com.
+An idea, a feature you miss? Suggest it in the [Ideas section of the Tradoshi forum](https://tradoshi.com/en/forum/ideas?utm_source=obsidian&utm_medium=readme&utm_campaign=ideas) (also **Settings, Improvements** in the plugin).
+
+A problem? Open an issue in this repository, or write to contact@tradoshi.com.

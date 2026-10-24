@@ -3,7 +3,7 @@ import type TradoshiPlugin from "./main";
 import { NO_FILTERS, type TradeFilters } from "./filters";
 import { language, t } from "./i18n";
 import { modules } from "./modules";
-import { appLink, guideLink, isValidTimeZone } from "./render";
+import { appLink, guideLink, ideasLink, isValidTimeZone } from "./render";
 import type { OfferState } from "./offer";
 import type { LayoutItem } from "./widgets/registry";
 
@@ -206,6 +206,11 @@ export class TradoshiSettingTab extends PluginSettingTab {
 				],
 			},
 			...modules().flatMap((m) => m.settings?.(this.plugin) ?? []),
+			{
+				type: "group",
+				heading: t("sImprove"),
+				items: [{ name: t("sIdeas"), desc: t("sIdeasDesc"), action: () => window.open(ideasLink(language(), "settings_ideas")) }],
+			},
 		];
 	}
 

@@ -184,6 +184,13 @@ export function appLink(ctx: Pick<RenderContext, "appUrl">, campaign: string, ha
 const SITE_URL = "https://tradoshi.com";
 const GUIDE_PATHS: Record<string, string> = { fr: "/obsidian.html", es: "/es/obsidian.html" };
 
+const IDEAS_PATHS: Record<string, string> = { fr: "/forum/idees", es: "/es/forum/ideas", pt: "/pt/forum/ideias" };
+
+/** The Ideas section of the Tradoshi forum, where traders suggest improvements. */
+export function ideasLink(language: string, campaign: string): string {
+	return `${SITE_URL}${IDEAS_PATHS[language] ?? "/en/forum/ideas"}?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}`;
+}
+
 /** The page that explains the plugin step by step, in the trader's language (English otherwise). */
 export function guideLink(language: string, campaign: string): string {
 	return `${SITE_URL}${GUIDE_PATHS[language] ?? "/en/obsidian.html"}?utm_source=obsidian&utm_medium=plugin&utm_campaign=${campaign}`;
