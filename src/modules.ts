@@ -4,6 +4,7 @@ import { accountsModule } from "./accounts";
 import { manualModule } from "./manual";
 import { navModule } from "./nav/view";
 import { propFirmModule } from "./propfirm";
+import { setupsModule } from "./setups";
 import { tradeCardModule } from "./tradecard";
 import { tradeLogModule } from "./tradelog";
 import { toolsModule } from "./widgets/tools";
@@ -36,5 +37,5 @@ export interface PluginModule {
  * which imports this file, and a list built at import time would hold empty slots.
  */
 export function modules(): PluginModule[] {
-	return [tradeCardModule, manualModule, tradeLogModule, accountsModule, propFirmModule, toolsModule, navModule];
+	return [tradeCardModule, manualModule, tradeLogModule, accountsModule, propFirmModule, setupsModule, toolsModule, navModule];
 }
