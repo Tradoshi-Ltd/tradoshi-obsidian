@@ -3,7 +3,7 @@
 	"name": "Tradoshi Trading Journal",
 	"version": "1.0.0",
 	"minAppVersion": "1.13.2",
-	"description": "Sync your Tradoshi trading journal into Markdown notes, one per trade and one per day, with trades from over 2,000 brokers.",
+	"description": "A complete trading journal in your notes: dashboard, trade log, trade cards, prop firm challenges and goals, with trades synced from over 2,000 brokers, imported or entered by hand.",
 	"author": "Tradoshi",
 	"authorUrl": "https://tradoshi.com",
 	"isDesktopOnly": false
