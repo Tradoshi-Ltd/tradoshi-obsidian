@@ -92,6 +92,11 @@ export class TradoshiSettingTab extends PluginSettingTab {
 						control: { type: "secret", key: "tokenSecret", defaultValue: TOKEN_SECRET_ID },
 					},
 					{
+						name: t("sDisconnect"),
+						desc: t("sDisconnectDesc"),
+						action: () => void this.plugin.disconnect(),
+					},
+					{
 						name: t("sGetToken"),
 						desc: t("sGetTokenDesc"),
 						action: () => window.open(appLink(ctx, "settings", "params", "section=obsidian")),

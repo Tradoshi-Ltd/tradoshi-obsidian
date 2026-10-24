@@ -248,6 +248,21 @@ export default class TradoshiPlugin extends Plugin {
 		})();
 	}
 
+	/** Disconnects this vault from Tradoshi. The notes stay where they are. */
+	async disconnect(): Promise<void> {
+		if (!this.isConnected()) {
+			new Notice(`Tradoshi: ${t("nNotConnected")}`);
+			return;
+		}
+		this.app.secretStorage.setSecret(this.settings.tokenSecret || TOKEN_SECRET_ID, "");
+		this.pairing = null;
+		this.settings.offer = null;
+		this.settings.lastSync = null;
+		await this.saveSettings();
+		this.offerChanged();
+		new Notice(`Tradoshi: ${t("nDisconnected")}`, 10000);
+	}
+
 	/** A connection started from this vault is waiting for the trader's approval. */
 	pairingPending(): boolean {
 		return this.pairing !== null;
