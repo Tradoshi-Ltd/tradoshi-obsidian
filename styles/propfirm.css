@@ -1,0 +1,158 @@
+/* Prop firm challenges: the view, its cards and the dashboard widgets. A state always
+   comes with words and an icon; the colour only repeats it. */
+
+.tradoshi-dash {
+	--tradoshi-pf-danger: var(--color-orange, #d9822b);
+}
+
+/* View */
+.tradoshi-pf-view .tradoshi-pf-title { font-size: 1.45em; font-weight: var(--font-bold); line-height: 1.1; }
+.tradoshi-pf-banner {
+	border: 1px solid var(--tradoshi-accent); border-radius: var(--radius-l);
+	background: var(--background-secondary); padding: var(--size-4-3) var(--size-4-4); margin-bottom: var(--size-4-4);
+}
+.tradoshi-pf-banner p { margin: var(--size-2-2) 0 var(--size-4-2); color: var(--text-muted); font-size: var(--font-ui-small); }
+.tradoshi-pf-list { margin: var(--size-2-2) 0 var(--size-4-2); padding-left: var(--size-4-5); color: var(--text-muted); font-size: var(--font-ui-small); }
+.tradoshi-pf-list li { margin: var(--size-2-1) 0; }
+.tradoshi-pf-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: var(--size-4-3); align-items: start; margin-bottom: var(--size-4-4); }
+.tradoshi-pf-footnote { margin-top: var(--size-4-2); }
+.tradoshi-pf-eco-box { margin-bottom: var(--size-4-3); }
+.tradoshi-dash .tradoshi-pf-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@container tradoshi (max-width: 700px) {
+	.tradoshi-dash .tradoshi-pf-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container tradoshi (max-width: 460px) {
+	.tradoshi-dash .tradoshi-pf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Card of a challenge */
+.tradoshi-pf-card { display: flex; flex-direction: column; gap: var(--size-4-2); }
+.tradoshi-pf-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--size-4-2); }
+.tradoshi-pf-card-title { min-width: 0; }
+.tradoshi-pf-name { font-weight: var(--font-bold); font-size: 1.1em; }
+.tradoshi-pf-meta { color: var(--text-muted); font-size: var(--font-ui-smaller); }
+.tradoshi-pf-badge {
+	flex: none; font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); white-space: nowrap;
+	border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); padding: 1px var(--size-2-3);
+	color: var(--text-muted); background: var(--background-primary);
+}
+.tradoshi-pf-badge.is-reached, .tradoshi-pf-badge.is-passed, .tradoshi-pf-badge.is-funded { color: var(--tradoshi-gain); border-color: var(--tradoshi-gain); background: var(--tradoshi-gain-soft); }
+.tradoshi-pf-badge.is-failed { color: var(--tradoshi-loss); border-color: var(--tradoshi-loss); background: var(--tradoshi-loss-soft); }
+.tradoshi-pf-badge.is-active { color: var(--text-accent); border-color: var(--text-accent); }
+
+/* Phases */
+.tradoshi-pf-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--size-2-2); }
+.tradoshi-dash button.tradoshi-pf-step {
+	display: flex; flex-direction: column; align-items: flex-start; gap: 1px; height: auto; min-width: 0;
+	padding: var(--size-2-2) var(--size-2-3); text-align: left; white-space: normal;
+	background: var(--background-primary); border: 1px solid var(--background-modifier-border); box-shadow: none;
+}
+.tradoshi-pf-step-name { font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); color: var(--text-normal); overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.tradoshi-pf-step-sub { font-size: 0.8em; color: var(--text-faint); }
+.tradoshi-dash button.tradoshi-pf-step.is-shown { border-color: var(--interactive-accent); box-shadow: inset 0 0 0 1px var(--interactive-accent); }
+.tradoshi-dash button.tradoshi-pf-step.is-passed .tradoshi-pf-step-sub, .tradoshi-dash button.tradoshi-pf-step.is-funded .tradoshi-pf-step-sub { color: var(--tradoshi-gain); }
+.tradoshi-dash button.tradoshi-pf-step.is-failed .tradoshi-pf-step-sub { color: var(--tradoshi-loss); }
+.tradoshi-dash button.tradoshi-pf-step:disabled { opacity: 0.55; cursor: default; }
+
+/* Figures of the phase */
+.tradoshi-pf-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--size-2-2); }
+.tradoshi-pf-fact { background: var(--background-primary); border-radius: var(--radius-s); padding: var(--size-2-2) var(--size-2-3); min-width: 0; }
+.tradoshi-pf-fact-label { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); font-weight: var(--font-semibold); }
+.tradoshi-pf-fact-value { font-weight: var(--font-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@container tradoshi (max-width: 460px) {
+	.tradoshi-pf-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Rules and their gauges */
+.tradoshi-pf-rules { display: grid; gap: var(--size-4-2); }
+.tradoshi-pf-rule-head { display: flex; justify-content: space-between; align-items: center; gap: var(--size-2-3); font-size: var(--font-ui-small); }
+.tradoshi-pf-rule-name { font-weight: var(--font-semibold); min-width: 0; }
+.tradoshi-pf-status { display: inline-flex; align-items: center; gap: var(--size-2-1); font-size: var(--font-ui-smaller); font-weight: var(--font-semibold); white-space: nowrap; color: var(--text-muted); }
+.tradoshi-pf-icon { display: inline-flex; }
+.tradoshi-pf-icon svg { width: 14px; height: 14px; }
+.tradoshi-pf-status.is-met, .tradoshi-pf-status.is-ok { color: var(--tradoshi-gain); }
+.tradoshi-pf-status.is-danger, .tradoshi-pf-status.is-blocked { color: var(--tradoshi-pf-danger); }
+.tradoshi-pf-status.is-violated { color: var(--tradoshi-loss); }
+.tradoshi-pf-track { position: relative; height: 8px; border-radius: 4px; background: var(--background-modifier-border); margin: var(--size-2-2) 0 var(--size-2-1); overflow: hidden; }
+.tradoshi-pf-fill { position: absolute; left: 0; top: 0; bottom: 0; width: var(--w); border-radius: 4px; background: var(--text-faint); }
+.tradoshi-pf-mark { position: absolute; left: 80%; top: 0; bottom: 0; width: 2px; background: var(--background-secondary); }
+.tradoshi-pf-track.is-target .tradoshi-pf-fill { background: var(--interactive-accent); }
+.is-met > .tradoshi-pf-track .tradoshi-pf-fill { background: var(--tradoshi-gain); }
+.is-ok > .tradoshi-pf-track.is-limit .tradoshi-pf-fill { background: var(--tradoshi-gain); opacity: 0.7; }
+.is-danger > .tradoshi-pf-track .tradoshi-pf-fill, .is-blocked > .tradoshi-pf-track .tradoshi-pf-fill { background: var(--tradoshi-pf-danger); }
+.is-violated > .tradoshi-pf-track .tradoshi-pf-fill { background: var(--tradoshi-loss); }
+.tradoshi-pf-rule-figs { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 var(--size-4-2); font-size: var(--font-ui-smaller); }
+.tradoshi-pf-main { font-weight: var(--font-semibold); }
+.tradoshi-pf-sub { color: var(--text-muted); font-size: var(--font-ui-smaller); }
+
+/* Alerts */
+.tradoshi-pf-alerts { display: grid; gap: var(--size-2-2); margin-bottom: var(--size-4-3); }
+.tradoshi-pf-alerts.is-compact { margin-bottom: var(--size-4-2); }
+.tradoshi-pf-alert {
+	display: flex; align-items: flex-start; gap: var(--size-2-3); font-size: var(--font-ui-small);
+	border: 1px solid var(--background-modifier-border); border-left-width: 3px; border-radius: var(--radius-s);
+	background: var(--background-primary); padding: var(--size-2-2) var(--size-4-2);
+}
+.tradoshi-pf-alert .tradoshi-pf-icon { margin-top: 2px; }
+.tradoshi-pf-alert.is-failed { border-left-color: var(--tradoshi-loss); }
+.tradoshi-pf-alert.is-failed .tradoshi-pf-icon { color: var(--tradoshi-loss); }
+.tradoshi-pf-alert.is-danger, .tradoshi-pf-alert.is-blocked { border-left-color: var(--tradoshi-pf-danger); }
+.tradoshi-pf-alert.is-danger .tradoshi-pf-icon, .tradoshi-pf-alert.is-blocked .tradoshi-pf-icon { color: var(--tradoshi-pf-danger); }
+.tradoshi-pf-alert.is-passed, .tradoshi-pf-alert.is-payout { border-left-color: var(--tradoshi-gain); }
+.tradoshi-pf-alert.is-passed .tradoshi-pf-icon, .tradoshi-pf-alert.is-payout .tradoshi-pf-icon { color: var(--tradoshi-gain); }
+.tradoshi-pf-alert.is-link { cursor: pointer; }
+.tradoshi-pf-alert.is-link:hover, .tradoshi-pf-alert.is-link:focus-visible { background: var(--background-modifier-hover); }
+
+/* Balance chart */
+.tradoshi-pf-chart { width: 100%; height: auto; display: block; max-height: 320px; }
+.tradoshi-pf-chart .tradoshi-pf-grid { stroke: var(--background-modifier-border); stroke-width: 1; }
+.tradoshi-pf-chart .tradoshi-pf-axis { fill: var(--text-faint); font-size: 12px; }
+.tradoshi-pf-chart .tradoshi-pf-start { stroke: var(--text-faint); stroke-dasharray: 2 4; }
+.tradoshi-pf-chart .tradoshi-pf-target { stroke: var(--tradoshi-gain); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.tradoshi-pf-chart .tradoshi-pf-floor { fill: none; stroke: var(--tradoshi-loss); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.tradoshi-pf-chart .tradoshi-pf-balance { fill: none; stroke: var(--tradoshi-accent); stroke-width: 2.5; stroke-linejoin: round; }
+.tradoshi-pf-chart .tradoshi-pf-line-label { font-size: 12px; fill: var(--text-muted); stroke: none; }
+.tradoshi-pf-chart .tradoshi-pf-line-label.tradoshi-pf-target { fill: var(--tradoshi-gain); }
+.tradoshi-pf-chart .tradoshi-pf-floor-label { fill: var(--tradoshi-loss); }
+.tradoshi-pf-chart .tradoshi-pf-payout { fill: var(--background-secondary); stroke: var(--tradoshi-gain); stroke-width: 2; }
+.tradoshi-pf-chart .tradoshi-pf-breach { fill: none; stroke: var(--tradoshi-loss); stroke-width: 2.5; }
+.tradoshi-pf-chart .tradoshi-pf-hit { fill: transparent; cursor: crosshair; }
+.tradoshi-pf-chart .tradoshi-pf-cross, .tradoshi-pf-chart .tradoshi-pf-dot { display: none; }
+.tradoshi-pf-chart.is-hover .tradoshi-pf-cross { display: inline; stroke: var(--text-muted); stroke-width: 1; }
+.tradoshi-pf-chart.is-hover .tradoshi-pf-dot { display: inline; fill: var(--tradoshi-accent); stroke: var(--background-secondary); stroke-width: 2; }
+
+/* Payouts, cost, actions */
+.tradoshi-pf-payout-box { border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-2-3) var(--size-4-3); display: grid; gap: var(--size-2-2); font-size: var(--font-ui-small); }
+.tradoshi-pf-payout-box.is-ready { border-color: var(--tradoshi-gain); background: var(--tradoshi-gain-soft); }
+.tradoshi-pf-payout-box .tradoshi-pf-list { margin: 0; }
+.tradoshi-pf-sub-title { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.05em; font-weight: var(--font-semibold); color: var(--text-muted); }
+.tradoshi-pf-eco { display: flex; flex-wrap: wrap; gap: var(--size-2-2) var(--size-4-3); font-size: var(--font-ui-smaller); }
+.tradoshi-pf-eco-part { white-space: nowrap; }
+.tradoshi-pf-details summary { cursor: pointer; color: var(--text-muted); font-size: var(--font-ui-smaller); }
+.tradoshi-pf-details .tradoshi-pf-sub { margin-top: var(--size-2-1); }
+.tradoshi-pf-actions { display: flex; flex-wrap: wrap; gap: var(--size-2-2); padding-top: var(--size-2-2); border-top: 1px solid var(--background-modifier-border); }
+.tradoshi-pf-actions button { font-size: var(--font-ui-smaller); }
+
+/* Widgets */
+.tradoshi-pf-open { font-size: var(--font-ui-smaller); text-transform: none; letter-spacing: 0; }
+.tradoshi-pf-mini, .tradoshi-pf-dd { padding: var(--size-2-3) 0; border-top: 1px solid var(--background-modifier-border); display: grid; gap: var(--size-2-2); }
+.tradoshi-pf-mini:first-of-type, .tradoshi-pf-dd:first-of-type { border-top: none; }
+.tradoshi-pf-mini-head { display: flex; justify-content: space-between; align-items: center; gap: var(--size-2-3); font-size: var(--font-ui-small); }
+.tradoshi-pf-mini-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tradoshi-pf-dd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--size-4-3); }
+.tradoshi-pf-margin-value { font-size: 1.25em; font-weight: var(--font-bold); margin-top: var(--size-2-1); }
+.tradoshi-pf-margin.is-danger .tradoshi-pf-margin-value { color: var(--tradoshi-pf-danger); }
+.tradoshi-pf-margin.is-violated .tradoshi-pf-margin-value { color: var(--tradoshi-loss); }
+@container tradoshi (max-width: 460px) {
+	.tradoshi-pf-dd-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Window to create or edit a challenge */
+.tradoshi-pf-modal .tradoshi-pf-warning { border-left: 3px solid var(--color-orange, #d9822b); padding: var(--size-2-2) var(--size-4-2); background: var(--background-secondary); color: var(--text-muted); font-size: var(--font-ui-small); }
+.tradoshi-pf-modal .tradoshi-pf-currency { width: 4.5em; text-transform: uppercase; }
+.tradoshi-pf-phase-edit { border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-2-3) var(--size-4-3); margin: var(--size-2-3) 0; }
+.tradoshi-pf-phase-edit > summary { cursor: pointer; }
+.tradoshi-pf-phase-summary { color: var(--text-muted); font-size: var(--font-ui-smaller); margin: var(--size-2-1) 0 0 var(--size-4-3); }
+.tradoshi-pf-phase-body { margin-top: var(--size-2-3); }
+.tradoshi-pf-error { color: var(--text-error); font-size: var(--font-ui-small); min-height: 1em; }
+.tradoshi-pf-head-right { display: inline-flex; align-items: center; gap: var(--size-2-3); }

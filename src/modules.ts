@@ -1,5 +1,6 @@
 import type { SettingDefinitionItem } from "obsidian";
 import type TradoshiPlugin from "./main";
+import { propFirmModule } from "./propfirm";
 
 // A module adds one family of features (prop firm rules, reviews, sessions, trade log…)
 // without touching the plugin core: it registers its views, commands and code blocks in
@@ -13,4 +14,4 @@ export interface PluginModule {
 	settings?(plugin: TradoshiPlugin): SettingDefinitionItem[];
 }
 
-export const MODULES: PluginModule[] = [];
+export const MODULES: PluginModule[] = [propFirmModule];
