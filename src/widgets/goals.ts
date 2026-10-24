@@ -5,6 +5,7 @@ import type TradoshiPlugin from "../main";
 import { dayKey, goalStatus, parseAmount, type Goal } from "../stats-advanced";
 import { tr } from "./analytics-i18n";
 import { allTrades, dayLong } from "./analytics-util";
+import { drawGoalList } from "./goal-list-ui";
 import { cardTitle, type Widget } from "./types";
 
 // Goals: a result to reach in the month and a loss not to go beyond in a day, set in
@@ -97,12 +98,13 @@ export const goalsWidget: Widget = {
 		gear.addEventListener("click", open);
 
 		const goal = goalOf(ctx.plugin, c);
+		const today = dayKey(ctx.now);
 		if (!goal.month && !goal.dayLoss) {
 			card.createEl("p", { cls: "tradoshi-empty", text: tr("goalsEmpty", { c }) });
 			card.createEl("button", { cls: "mod-cta", text: tr("goalsButton") }).addEventListener("click", open);
+			drawGoalList(card, ctx, today);
 			return;
 		}
-		const today = dayKey(ctx.now);
 		const st = goalStatus(allTrades(ctx), goal, today);
 
 		const month = card.createDiv({ cls: "tradoshi-xgoal" });
@@ -139,5 +141,6 @@ export const goalsWidget: Widget = {
 			const n = st.breachedDays.length;
 			if (n) card.createEl("p", { cls: "tradoshi-note", text: n === 1 ? tr("goalBreachedOne") : tr("goalBreachedDays", { n }) });
 		}
+		drawGoalList(card, ctx, today);
 	},
 };
