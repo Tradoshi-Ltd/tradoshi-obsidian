@@ -25,6 +25,22 @@ Your trades come from your [Tradoshi](https://tradoshi.com) journal, synced auto
 - Select several trades (Shift+click for a range) to mark them reviewed, add a setup, a mistake or a tag, or delete their notes.
 - A gallery of all the charts and media of your trades, sorted by date or result, filtered by chart tag.
 
+### Day reports and reviews
+- **The day report** at the top of each day note: the figures and the curve of the day, every trade with a quick review adapted to winners, losers and break-even trades, questions before and after the session, and what you wanted to keep in mind from the day before.
+- **Weekly, monthly, quarterly and yearly reviews**, created in one command: figures compared with the period before, both curves on one chart, day by day (or week by week) table, best and worst trades, setups and the cost of each mistake, and the questions of the period.
+- **Questions you write**: edit each template (day, session, winning, losing or break-even trade, week, month, quarter, year), with yes or no, scores, choices, follow-up questions and answers recalled in the next review. Answers are properties of the note, for Bases and Dataview.
+- **Reviews linked to each other** (day, week, month, quarter, year, previous and next), so the graph view shows your review cycle, with streaks and reviews still to do on the dashboard.
+
+### Session mode
+- A sidebar that follows your trading session: your time slots, a checklist to prepare, the session clock with pauses, notes with a time and a tag, and the trades of the vault arriving as they close.
+- **The trade gate**: a tree of questions you design, where each answer leads to another question or to GO, WAIT or NO GO, with checks (no dead end, no loop) and a test run.
+- At the end, the session is written in a note linked to the day.
+
+### Setups and playbooks
+- A sheet per setup, with its playbook, its rules to tick and its examples, and its figures at the top.
+- The setups view: each setup with its result, win rate, expectancy, profit factor, average R and curve; the detail of one setup by day, hour and symbol; the cost of breaking your plan or making a mistake on it; up to four setups compared side by side.
+- Trades link to the sheet of their setup, for the graph view.
+
 ### Prop firm challenges
 - One or two evaluation phases then the funded account, each with its rules: profit target, maximum loss (static, or trailing at the end of the day or after each trade), daily loss, minimum and maximum days, consistency.
 - Every rule as a gauge (respected, at risk, broken with its day), the balance curve with its floor and target, payouts (when one is possible, how much, your share) and what your evaluations cost against what they paid.
@@ -71,7 +87,7 @@ Don't have an account yet? [Create a free Tradoshi account](https://app.tradoshi
 
 ## Commands
 
-Open the dashboard, the trade log, the accounts, the prop firms or the navigation sidebar; sync now; import a statement; add a trade by hand; edit the current trade; mark the current trade as reviewed; open the next or previous trade; new prop firm challenge; open the position size calculator; turn privacy mode on or off; open the overview note; open the web app; restore deleted notes.
+Open the dashboard, the trade log, the accounts, the setups, the prop firms, the session mode or the navigation sidebar; open the day report or the review of this week, last week, this month, quarter or year, or of a period you choose; edit the review questions; start, end or annotate a session, run or edit the trade gate; new setup, compare setups; sync now; import a statement; add a trade by hand; edit the current trade; mark the current trade as reviewed; open the next or previous trade; new prop firm challenge; open the position size calculator; turn privacy mode on or off; open the overview note; open the web app; restore deleted notes.
 
 ## Settings
 
