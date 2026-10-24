@@ -208,6 +208,161 @@
 .tradoshi-target-fill { height: 100%; width: var(--w); background: var(--interactive-accent); border-radius: 4px; }
 .tradoshi-target-fill.is-done { background: var(--tradoshi-gain); }
 
+/* Analytics widgets: advanced metrics, curves, breakdowns, year map, week, streaks,
+   trading score and goals. Theme colours only, plus the gain and loss colours. */
+
+.tradoshi-dash {
+	--tradoshi-long: var(--color-blue);
+	--tradoshi-short: var(--color-purple);
+}
+
+/* Advanced metrics */
+.tradoshi-xgroup { font-size: var(--font-ui-smaller); color: var(--text-faint); font-weight: var(--font-semibold); margin: var(--size-4-2) 0 var(--size-2-2); }
+.tradoshi-card-title + .tradoshi-xgroup { margin-top: 0; }
+.tradoshi-xtiles { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--size-4-2); }
+/* The label takes the free height, so the values of a row line up whatever their label's length. */
+.tradoshi-dash .tradoshi-xtile { background: var(--background-primary); padding: var(--size-2-3) var(--size-4-2); cursor: default; display: flex; flex-direction: column; }
+.tradoshi-dash .tradoshi-xtile .tradoshi-kpi-label { flex: 1; }
+.tradoshi-dash .tradoshi-xtile .tradoshi-kpi-value { font-size: 1.15em; }
+.tradoshi-dash .tradoshi-xtile .tradoshi-kpi-sub {
+	white-space: normal; line-height: 1.3; min-height: 2.6em;
+	display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.tradoshi-dash .tradoshi-xtile:hover { border-color: var(--background-modifier-border-hover); }
+
+/* Bars and lines */
+.tradoshi-chart .tradoshi-xbar.is-gain { fill: var(--tradoshi-gain); }
+.tradoshi-chart .tradoshi-xbar.is-loss { fill: var(--tradoshi-loss); }
+.tradoshi-chart .tradoshi-xbar.is-hover { stroke: var(--text-normal); stroke-width: 1.5; }
+.tradoshi-chart .tradoshi-hit.is-clickable { cursor: pointer; }
+.tradoshi-chart .tradoshi-xline { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.tradoshi-chart .tradoshi-xline.is-dashed { stroke-dasharray: 7 5; }
+.tradoshi-chart .tradoshi-xref { stroke: var(--text-faint); stroke-dasharray: 3 4; }
+.tradoshi-chart .tradoshi-xref-label { fill: var(--text-muted); }
+.tradoshi-chart .tradoshi-xdot { display: none; stroke: var(--background-secondary); stroke-width: 2; }
+.tradoshi-chart.is-hover .tradoshi-xdot { display: inline; }
+.tradoshi-chart.is-hover .tradoshi-xdot.is-off { display: none; }
+.tradoshi-chart .is-gain.tradoshi-xline { stroke: var(--tradoshi-gain); }
+.tradoshi-chart .is-loss.tradoshi-xline { stroke: var(--tradoshi-loss); }
+.tradoshi-chart .is-accent.tradoshi-xline { stroke: var(--tradoshi-accent); }
+.tradoshi-chart .is-long.tradoshi-xline { stroke: var(--tradoshi-long); }
+.tradoshi-chart .is-short.tradoshi-xline { stroke: var(--tradoshi-short); }
+.tradoshi-chart .tradoshi-xdot.is-gain, .tradoshi-chart .tradoshi-xpoint.is-gain { fill: var(--tradoshi-gain); }
+.tradoshi-chart .tradoshi-xdot.is-loss, .tradoshi-chart .tradoshi-xpoint.is-loss { fill: var(--tradoshi-loss); }
+.tradoshi-chart .tradoshi-xdot.is-accent, .tradoshi-chart .tradoshi-xpoint.is-accent { fill: var(--tradoshi-accent); }
+.tradoshi-chart .tradoshi-xdot.is-long, .tradoshi-chart .tradoshi-xpoint.is-long { fill: var(--tradoshi-long); }
+.tradoshi-chart .tradoshi-xdot.is-short, .tradoshi-chart .tradoshi-xpoint.is-short { fill: var(--tradoshi-short); }
+
+.tradoshi-legend { display: flex; flex-wrap: wrap; gap: var(--size-2-2) var(--size-4-3); margin-top: var(--size-2-2); font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.tradoshi-legend-item { display: inline-flex; align-items: center; gap: var(--size-2-2); }
+.tradoshi-legend-swatch { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--text-muted); border-radius: 2px; }
+.tradoshi-legend-swatch.is-dashed { border-top-style: dashed; }
+.tradoshi-legend-swatch.is-gain { border-top-color: var(--tradoshi-gain); }
+.tradoshi-legend-swatch.is-loss { border-top-color: var(--tradoshi-loss); }
+.tradoshi-legend-swatch.is-accent { border-top-color: var(--tradoshi-accent); }
+.tradoshi-legend-swatch.is-long { border-top-color: var(--tradoshi-long); }
+.tradoshi-legend-swatch.is-short { border-top-color: var(--tradoshi-short); }
+
+/* Small choices in a card heading */
+.tradoshi-xchips { display: inline-flex; gap: 2px; text-transform: none; letter-spacing: 0; }
+.tradoshi-dash button.tradoshi-xchip { font-size: var(--font-ui-smaller); padding: 0 var(--size-2-3); height: auto; min-height: 22px; box-shadow: none; background: var(--background-modifier-hover); color: var(--text-muted); }
+.tradoshi-dash button.tradoshi-xchip.is-active { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+/* Figures under a chart */
+.tradoshi-xstats { display: flex; flex-wrap: wrap; gap: var(--size-2-3) var(--size-4-5); margin-top: var(--size-4-2); }
+.tradoshi-xstat-label { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-weight: var(--font-semibold); }
+.tradoshi-xstat-value { font-weight: var(--font-semibold); font-size: var(--font-ui-small); }
+.tradoshi-xnote { font-size: var(--font-ui-small); font-weight: var(--font-semibold); margin-top: var(--size-2-3); }
+.tradoshi-xsubtitle { font-size: var(--font-ui-smaller); color: var(--text-faint); font-weight: var(--font-semibold); margin: var(--size-4-3) 0 var(--size-2-1); }
+
+/* Long and short */
+.tradoshi-xside td, .tradoshi-xside th { padding: var(--size-2-1) var(--size-2-3); }
+
+/* Hours */
+.tradoshi-weekday.is-best .tradoshi-weekday-label { color: var(--text-accent); font-weight: var(--font-bold); }
+.tradoshi-weekday.is-best .tradoshi-weekday-bar { box-shadow: 0 0 0 2px var(--text-accent); }
+.tradoshi-xhours { margin-top: var(--size-4-2); }
+
+/* Year map: one row per weekday, one column per week */
+.tradoshi-heat { container-type: inline-size; display: flex; flex-direction: column; gap: 2px; }
+.tradoshi-heat-row { display: flex; gap: 2px; align-items: center; }
+.tradoshi-heat-name { flex: 0 0 30px; font-size: 10px; line-height: 1; color: var(--text-faint); text-transform: capitalize; white-space: nowrap; overflow: hidden; }
+.tradoshi-heat-slot { flex: 1 1 0; min-width: 0; max-width: 20px; font-size: 10px; line-height: 1.4; color: var(--text-faint); white-space: nowrap; text-transform: capitalize; }
+.tradoshi-heat-cell { flex: 1 1 0; min-width: 0; max-width: 20px; aspect-ratio: 1; border-radius: 2px; background: var(--background-modifier-hover); }
+.tradoshi-heat-cell[role="button"] { cursor: pointer; }
+.tradoshi-heat-cell[role="button"]:hover, .tradoshi-heat-cell[role="button"]:focus-visible { outline: 1.5px solid var(--text-normal); outline-offset: 0; }
+.tradoshi-heat-cell.is-future { background: transparent; }
+.tradoshi-heat-cell.is-even { background: var(--text-faint); }
+.tradoshi-heat-cell.is-g1 { background: color-mix(in srgb, var(--tradoshi-gain) 30%, transparent); }
+.tradoshi-heat-cell.is-g2 { background: color-mix(in srgb, var(--tradoshi-gain) 52%, transparent); }
+.tradoshi-heat-cell.is-g3 { background: color-mix(in srgb, var(--tradoshi-gain) 76%, transparent); }
+.tradoshi-heat-cell.is-g4 { background: var(--tradoshi-gain); }
+.tradoshi-heat-cell.is-l1 { background: color-mix(in srgb, var(--tradoshi-loss) 30%, transparent); }
+.tradoshi-heat-cell.is-l2 { background: color-mix(in srgb, var(--tradoshi-loss) 52%, transparent); }
+.tradoshi-heat-cell.is-l3 { background: color-mix(in srgb, var(--tradoshi-loss) 76%, transparent); }
+.tradoshi-heat-cell.is-l4 { background: var(--tradoshi-loss); }
+.tradoshi-heat-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: var(--size-4-2); font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.tradoshi-heat-legend .tradoshi-heat-cell { flex: none; width: 11px; height: 11px; }
+.tradoshi-heat-legend span:first-child { margin-right: var(--size-2-2); }
+.tradoshi-heat-legend span:last-child { margin-left: var(--size-2-2); }
+@container (max-width: 560px) {
+	.tradoshi-heat .is-old26 { display: none; }
+}
+@container (max-width: 300px) {
+	.tradoshi-heat .is-old13 { display: none; }
+}
+
+/* Week summary and streaks */
+.tradoshi-xweek, .tradoshi-xstreaks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--size-4-3); }
+.tradoshi-xweek-block, .tradoshi-xstreak { background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-4-2) var(--size-4-3); min-width: 0; }
+.tradoshi-xweek-net, .tradoshi-xstreak-now { font-size: 1.35em; font-weight: var(--font-bold); margin: var(--size-2-1) 0; }
+.tradoshi-xweek-line { font-size: var(--font-ui-small); margin-top: var(--size-2-1); }
+.tradoshi-xweek-mini { margin-top: var(--size-4-2); }
+.tradoshi-xweek-mini .tradoshi-columns { height: 80px; }
+
+/* Trading score */
+.tradoshi-xscore { display: flex; align-items: center; gap: var(--size-4-4); margin-bottom: var(--size-4-2); }
+.tradoshi-xscore-ring { width: 96px; height: 96px; flex: none; }
+.tradoshi-xscore-track { fill: none; stroke: var(--background-modifier-border); stroke-width: 9; }
+.tradoshi-xscore-arc { fill: none; stroke-width: 9; stroke-linecap: round; }
+.tradoshi-xscore-arc.is-gain { stroke: var(--tradoshi-gain); }
+.tradoshi-xscore-arc.is-accent { stroke: var(--tradoshi-accent); }
+.tradoshi-xscore-arc.is-loss { stroke: var(--tradoshi-loss); }
+.tradoshi-xscore-value { fill: var(--text-normal); font-size: 26px; font-weight: 700; }
+.tradoshi-xscore-band { font-size: 1.2em; font-weight: var(--font-bold); }
+.tradoshi-xscore-side { min-width: 0; font-size: var(--font-ui-small); }
+.tradoshi-xparts { display: grid; gap: var(--size-4-2); }
+.tradoshi-xpart-head { display: flex; align-items: baseline; gap: var(--size-2-3); font-size: var(--font-ui-small); }
+.tradoshi-xpart-value { color: var(--text-muted); }
+.tradoshi-xpart-points { margin-left: auto; font-weight: var(--font-semibold); white-space: nowrap; }
+.tradoshi-xpart-track { height: 6px; border-radius: 3px; background: var(--background-modifier-hover); margin: var(--size-2-1) 0; overflow: hidden; }
+.tradoshi-xpart-bar { height: 100%; width: var(--w); background: var(--tradoshi-accent); border-radius: 3px; }
+.tradoshi-xpart-rule { font-size: var(--font-ui-smaller); color: var(--text-faint); }
+.tradoshi-xpart.is-out .tradoshi-xpart-points { color: var(--text-faint); font-weight: var(--font-normal); }
+
+/* Goals */
+.tradoshi-dash button.tradoshi-xgear { padding: 2px; height: auto; box-shadow: none; background: none; color: var(--text-muted); }
+.tradoshi-xgoal { background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); padding: var(--size-4-2) var(--size-4-3); margin-bottom: var(--size-2-3); }
+.tradoshi-xgoal.is-alert { border-color: var(--tradoshi-loss); background: var(--tradoshi-loss-soft); }
+.tradoshi-xgoal-line { margin: var(--size-2-1) 0; }
+.tradoshi-xgoal-track { height: 8px; border-radius: 4px; background: var(--background-modifier-hover); overflow: hidden; margin: var(--size-2-2) 0; }
+.tradoshi-xgoal-fill { height: 100%; width: var(--w); border-radius: 4px; }
+.tradoshi-xgoal-fill.is-gain { background: var(--tradoshi-gain); }
+.tradoshi-xgoal-fill.is-loss { background: var(--tradoshi-loss); }
+.tradoshi-xgoal-alert { color: var(--tradoshi-loss); font-weight: var(--font-semibold); font-size: var(--font-ui-small); margin-top: var(--size-2-2); }
+.tradoshi-xgoal-error { color: var(--text-error); }
+
+/* Narrow panes */
+@container tradoshi (max-width: 900px) {
+	.tradoshi-xtiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container tradoshi (max-width: 480px) {
+	.tradoshi-xtiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.tradoshi-xweek, .tradoshi-xstreaks { grid-template-columns: minmax(0, 1fr); }
+	.tradoshi-xscore-ring { width: 76px; height: 76px; }
+}
+.tradoshi-xparts + .tradoshi-note, .tradoshi-xstreaks + .tradoshi-note { margin: var(--size-4-2) 0 0; }
+
 /* Dashboard grid: 12 columns, each widget spans by its size. Sized on the pane, not the window. */
 .tradoshi-dash { container-type: inline-size; container-name: tradoshi; }
 .tradoshi-grid12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--size-4-3); align-items: start; }
