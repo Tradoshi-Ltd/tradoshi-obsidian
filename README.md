@@ -2,7 +2,11 @@
 
 A complete trading journal inside Obsidian, in Markdown notes you own.
 
-Your trades come from your [Tradoshi](https://tradoshi.com) journal, synced automatically from over 2,000 brokers and prop firms (MetaTrader 4 and 5, cTrader, NinjaTrader, Tradovate, Interactive Brokers and more), from a statement you import, or by hand. The plugin writes them as plain notes you can link, tag, query and keep forever, and analyses them on your computer.
+Your trades come from your [Tradoshi](https://tradoshi.com/en/) journal, synced automatically from over 2,000 brokers and prop firms (MetaTrader 4 and 5, cTrader, NinjaTrader, Tradovate, Interactive Brokers and more), from a statement you import, or by hand. The plugin writes them as plain notes you can link, tag, query and keep forever, and analyses them on your computer.
+
+## Install
+
+In Obsidian, open **Settings → Community plugins → Browse**, search for **Tradoshi**, then install and enable the plugin. Its page in the Obsidian directory: [community.obsidian.md/plugins/tradoshi](https://community.obsidian.md/plugins/tradoshi).
 
 ## What you get
 
