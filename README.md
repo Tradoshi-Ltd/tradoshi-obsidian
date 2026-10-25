@@ -124,7 +124,7 @@ Open the dashboard, the trade log, the accounts, the setups, the prop firms, the
 
 ## When do new trades show up?
 
-An automatic sync asks Tradoshi only for what changed and writes only those accounts; once a day, and at the first sync after Obsidian opens, it reads the whole journal. With automatic sync, Tradoshi syncs MetaTrader 4 and 5 accounts every night, and the plugin picks up those trades at its next sync, without opening Tradoshi. Other brokers and platforms sync when Tradoshi is open: if a trade is missing, open Tradoshi, then sync again. The overview note shows when each account was last updated.
+An automatic sync asks Tradoshi only for what changed and writes only those accounts; once a day, and at the first sync after Obsidian opens, it reads the whole journal. With automatic sync, Tradoshi reads your accounts every night, without you opening it: MetaTrader 4 and 5, and the platforms connected by API (cTrader, TradeLocker, Match-Trader, Interactive Brokers, IG, Tradovate and crypto exchanges). The plugin picks up those trades at its next sync. Other platforms sync when Tradoshi is open: if a trade is missing, open Tradoshi, then sync again. The overview note shows when each account was last updated.
 
 ## Disclosures
 

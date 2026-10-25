@@ -451,7 +451,7 @@ export function overviewBlock(ctx: RenderContext, accounts: OverviewAccount[], r
 	lines.push(
 		"",
 		"> [!info] Where your trades come from",
-		"> Trades synced from your brokers reach this vault once your Tradoshi journal is up to date. Open Tradoshi to fetch your latest trades, then sync again. Imported files are read on your computer and never sent anywhere.",
+		"> Every night, Tradoshi reads your MetaTrader accounts and the platforms connected by API, and the plugin picks up their trades at its next sync. For other platforms, open Tradoshi to fetch your latest trades, then sync again. Imported files are read on this device and never sent anywhere.",
 	);
 	if (ctx.appLinks) lines.push(`> [Open Tradoshi](${appLink(ctx, "overview")})`);
 	return lines.join("\n");

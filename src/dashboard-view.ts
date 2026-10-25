@@ -223,7 +223,9 @@ export class DashboardView extends ItemView {
 	private drawNoAccount(root: HTMLElement): void {
 		const box = root.createDiv({ cls: "tradoshi-no-account" });
 		const text = box.createDiv();
-		text.createEl("strong", { text: t("noAccountTitle", { n: this.plugin.tradeNoteCount(), max: FREE_IMPORT_LIMIT }) });
+		// A vault that was connected keeps its synced notes after a disconnect, often more than the limit.
+		const count = this.plugin.tradeNoteCount();
+		text.createEl("strong", { text: t(count > FREE_IMPORT_LIMIT ? "noAccountTitleOver" : "noAccountTitle", { n: count, max: FREE_IMPORT_LIMIT }) });
 		text.createEl("p", { text: t("noAccountText") });
 		const buttons = box.createDiv({ cls: "tradoshi-sample-buttons" });
 		buttons.createEl("button", { cls: "mod-cta", text: t("syncCta") }).addEventListener("click", () => this.plugin.connect("dashboard_no_account_sync"));

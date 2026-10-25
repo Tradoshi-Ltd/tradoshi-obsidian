@@ -215,7 +215,7 @@ export const recentWidget: Widget = {
 		cardTitle(card, t("recent"));
 		const rows = [...ctx.trades].sort((a, b) => b.at - a.at).slice(0, 8);
 		if (!rows.length) return emptyCard(card, t("noTrade"));
-		const table = card.createEl("table", { cls: "tradoshi-table" });
+		const table = card.createDiv({ cls: "tradoshi-scroll-x" }).createEl("table", { cls: "tradoshi-table" });
 		const head = table.createEl("tr");
 		for (const h of [t("date"), t("symbol"), t("side"), t("account"), "R", t("result")]) head.createEl("th", { text: h });
 		for (const x of rows) {

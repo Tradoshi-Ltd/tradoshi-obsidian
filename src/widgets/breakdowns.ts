@@ -26,7 +26,7 @@ export const longShortWidget: Widget = {
 		if (!trades.length) return emptyCard(card, t("noTrade"));
 		const c = ctx.currency;
 		const { long, short } = bySide(trades);
-		const table = card.createEl("table", { cls: "tradoshi-table tradoshi-xside" });
+		const table = card.createDiv({ cls: "tradoshi-scroll-x" }).createEl("table", { cls: "tradoshi-table tradoshi-xside" });
 		const head = table.createEl("tr");
 		head.createEl("th");
 		head.createEl("th", { cls: "tradoshi-num", text: cap(t("long")) });

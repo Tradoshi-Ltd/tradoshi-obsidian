@@ -217,7 +217,7 @@ export class PeriodCard extends MarkdownRenderChild {
 		const days = dayNotes(this.app);
 		const reviews = reviewNotes(this.app);
 		const today = todayOf(this.plugin);
-		const table = sec.createEl("table", { cls: "tradoshi-table tradoshi-rv-table" });
+		const table = sec.createDiv({ cls: "tradoshi-scroll-x" }).createEl("table", { cls: "tradoshi-table tradoshi-rv-table" });
 		const head = table.createEl("tr");
 		for (const h of [rt("period"), t("trades"), t("winRate"), t("net"), rt("reviewedShort"), rt("grade")]) head.createEl("th", { text: h });
 		const max = Math.max(...rows.map((r) => Math.abs(r.net)), 1);

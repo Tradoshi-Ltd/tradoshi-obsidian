@@ -1,7 +1,7 @@
 {
 	"id": "tradoshi",
 	"name": "Tradoshi Trading Journal",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"minAppVersion": "1.13.2",
 	"description": "A complete trading journal in your notes: dashboard, trade log, trade cards, prop firm challenges and goals, with trades synced from over 2,000 brokers, imported or entered by hand.",
 	"author": "Tradoshi",

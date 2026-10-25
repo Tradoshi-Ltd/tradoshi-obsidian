@@ -264,7 +264,7 @@ export class PropFirmView extends ItemView {
 			box.createDiv({ cls: "tradoshi-pf-sub", text: tr("noPolicy") });
 		}
 		if (c.payouts.length) {
-			const table = box.createEl("table", { cls: "tradoshi-table" });
+			const table = box.createDiv({ cls: "tradoshi-scroll-x" }).createEl("table", { cls: "tradoshi-table" });
 			const head = table.createEl("tr");
 			head.createEl("th", { text: tr("date") });
 			head.createEl("th", { cls: "tradoshi-num", text: tr("withdrawn") });

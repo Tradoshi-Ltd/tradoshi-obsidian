@@ -155,6 +155,8 @@
 .tradoshi-weekday-label { text-align: center; font-size: var(--font-ui-smaller); color: var(--text-faint); text-transform: capitalize; padding-top: var(--size-2-1); }
 
 /* Latest trades */
+/* A table wider than its card (phone) scrolls inside it instead of widening the view. */
+.tradoshi-scroll-x { overflow-x: auto; }
 .tradoshi-table { width: 100%; border-collapse: collapse; font-size: var(--font-ui-small); }
 .tradoshi-table th { text-align: left; color: var(--text-faint); font-weight: var(--font-semibold); font-size: var(--font-ui-smaller); text-transform: uppercase; padding: var(--size-2-1) var(--size-2-3); border-bottom: 1px solid var(--background-modifier-border); }
 .tradoshi-table td { padding: var(--size-2-3); border-bottom: 1px solid var(--background-modifier-border); }

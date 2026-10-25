@@ -2,7 +2,7 @@ import { makeT } from "../i18n";
 
 export const mt = makeT({
 	en: {
-		needsAccount: "Entering a trade needs a free Tradoshi account, connected to this vault. The trade still stays on your computer: the account only identifies you.",
+		needsAccount: "Entering a trade needs a free Tradoshi account, connected to this vault. The trade still stays on your device: the account only identifies you.",
 		connect: "Connect my free account",
 		titleAdd: "Add a trade",
 		titleEdit: "Edit the trade",
@@ -60,7 +60,7 @@ export const mt = makeT({
 		edit: "Edit this trade",
 	},
 	fr: {
-		needsAccount: "Saisir un trade demande un compte Tradoshi gratuit, connecté à ce coffre. Le trade reste quand même sur ton ordinateur : le compte sert seulement à t'identifier.",
+		needsAccount: "Saisir un trade demande un compte Tradoshi gratuit, connecté à ce coffre. Le trade reste quand même sur ton appareil : le compte sert seulement à t'identifier.",
 		connect: "Connecter mon compte gratuit",
 		titleAdd: "Ajouter un trade",
 		titleEdit: "Modifier le trade",
@@ -118,7 +118,7 @@ export const mt = makeT({
 		edit: "Modifier ce trade",
 	},
 	es: {
-		needsAccount: "Añadir una operación requiere una cuenta gratuita de Tradoshi conectada a esta bóveda. La operación sigue en tu ordenador: la cuenta solo sirve para identificarte.",
+		needsAccount: "Añadir una operación requiere una cuenta gratuita de Tradoshi conectada a esta bóveda. La operación sigue en tu dispositivo: la cuenta solo sirve para identificarte.",
 		connect: "Conectar mi cuenta gratuita",
 		titleAdd: "Añadir una operación",
 		titleEdit: "Editar la operación",
@@ -176,7 +176,7 @@ export const mt = makeT({
 		edit: "Editar esta operación",
 	},
 	pt: {
-		needsAccount: "Adicionar um trade exige uma conta gratuita da Tradoshi conectada a este cofre. O trade continua no seu computador: a conta só serve para identificar você.",
+		needsAccount: "Adicionar um trade exige uma conta gratuita da Tradoshi conectada a este cofre. O trade continua no seu dispositivo: a conta só serve para identificar você.",
 		connect: "Conectar minha conta gratuita",
 		titleAdd: "Adicionar um trade",
 		titleEdit: "Editar o trade",
