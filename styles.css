@@ -1145,12 +1145,6 @@ button.tradoshi-q-choice.is-active { background: var(--interactive-accent); colo
 .tradoshi-media-note button { justify-self: end; }
 .tradoshi-gallery-tags { display: flex; flex-wrap: wrap; gap: var(--size-2-1); padding: 0 var(--size-4-2) var(--size-2-2); }
 
-/* On a phone, a trade note opens on its card: its properties (trading_day and symbol together) start folded.
-   Tapping "Properties" opens them. Obsidian folds the block with an inline style, hence !important. */
-.is-phone .metadata-container:has(.metadata-property[data-property-key="trading_day"]):has(.metadata-property[data-property-key="symbol"]):not(.is-collapsed) > .metadata-content { display: none; }
-.is-phone .metadata-container:has(.metadata-property[data-property-key="trading_day"]):has(.metadata-property[data-property-key="symbol"]).is-collapsed > .metadata-content { display: block !important; }
-.is-phone .metadata-container:has(.metadata-property[data-property-key="trading_day"]):has(.metadata-property[data-property-key="symbol"]).is-collapsed .metadata-property { display: flex; }
-
 /* Trade log: table and gallery */
 .tradoshi-log-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3) var(--size-4-3); margin-bottom: var(--size-4-2); }
 .tradoshi-log-selects { display: flex; flex-wrap: wrap; gap: var(--size-2-2); align-items: center; }

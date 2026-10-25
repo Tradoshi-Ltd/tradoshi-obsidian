@@ -8,6 +8,7 @@ import { t } from "./i18n";
 import { modules } from "./modules";
 import { normalizeOffer, offerEvents, openLock } from "./offer";
 import { newPairing, openSealed } from "./pairing";
+import { foldTradePropertiesOnPhone } from "./phone-fold";
 import { keyFromProperties, OVERVIEW_KEY } from "./plan";
 import { appLink, isValidTimeZone } from "./render";
 import { APP_URL, DEFAULT_SETTINGS, TOKEN_SECRET_ID, TradoshiSettingTab, type TradoshiSettings } from "./settings";
@@ -118,6 +119,7 @@ export default class TradoshiPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			this.keyByPath = indexVault(this.app).byPath;
 			this.watchVault();
+			foldTradePropertiesOnPhone(this);
 			// First run: the dashboard opens by itself, with the sample journal until an account is connected.
 			if (!this.settings.dashboardOpened) {
 				this.settings.dashboardOpened = true;
