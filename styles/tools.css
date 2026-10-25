@@ -2,6 +2,10 @@
 .tradoshi-quick-card { padding: var(--size-2-3) var(--size-4-3); }
 .tradoshi-quick-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--size-2-3); }
 .tradoshi-quick-link { display: inline-flex; align-items: center; gap: var(--size-2-2); }
+/* On a phone, the links stay on one row that scrolls sideways, so the key figures show on the first screen. */
+.is-phone .tradoshi-quick-links { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.is-phone .tradoshi-quick-links::-webkit-scrollbar { display: none; }
+.is-phone .tradoshi-quick-link { flex: 0 0 auto; white-space: nowrap; }
 .tradoshi-quick-icon { display: inline-flex; color: var(--text-muted); }
 .tradoshi-quick-icon svg { width: 16px; height: 16px; }
 .tradoshi-review-list { display: grid; gap: var(--size-2-1); margin-bottom: var(--size-4-2); }
