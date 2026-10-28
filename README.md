@@ -91,7 +91,7 @@ Every new Tradoshi account starts with 14 days of Premium, without a card.
 
 In every case, the notes you write never leave your computer.
 
-Every step, with screenshots: [Tradoshi for Obsidian](https://tradoshi.com/en/obsidian.html?utm_source=obsidian&utm_medium=readme&utm_campaign=guide).
+Every step, with screenshots: [Tradoshi for Obsidian](https://tradoshi.com/en/obsidian?utm_source=obsidian&utm_medium=readme&utm_campaign=guide).
 
 ## Connect in one click
 
